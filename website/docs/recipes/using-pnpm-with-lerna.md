@@ -5,7 +5,7 @@ Lerna can be used in a [`pnpm` workspace](https://pnpm.io/workspaces) to get the
 When used in a `pnpm` workspace, Lerna will:
 
 - resolve package locations with `pnpm-workspace.yaml` (https://pnpm.io/workspaces)
-- enforce `useWorkspaces: true` in `lerna.json` (and ignore `packages:` in `package.json`).
+- ignore `"workspaces"` in `package.json`
 - block usage of `bootstrap`, `link`, and `add` commands. Instead, you should use `pnpm` commands directly to manage dependencies (https://pnpm.io/cli/install).
 - respect the [workspace protocol](https://pnpm.io/workspaces#workspace-protocol-workspace) for package dependencies.
   - During `lerna version`, dependencies will be updated as normal, but will preserve the `workspace:` prefix if it exists.
@@ -17,7 +17,7 @@ To set up pnpm with Lerna:
 
 1. If not installed already, install `pnpm`: https://pnpm.io/installation.
 2. Remove the `node_modules/` folder in the root, if it exists. If not already using workspaces, run `lerna clean` to remove the `node_modules/` folder in all packages.
-3. Set `"npmClient": "pnpm"` and `"useWorkspaces": true` in `lerna.json`.
+3. Set `"npmClient": "pnpm"` in `lerna.json`.
 4. Create a `pnpm-workspace.yaml` file in the root of your project.
    If you are already using npm or yarn workspaces, move the "workspaces" property from `package.json` to `pnpm-workspace.yaml`. If you were not already using workspaces, move the "packages" property from `lerna.json` to `pnpm-workspace.yaml`. For example:
 

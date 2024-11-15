@@ -10,20 +10,13 @@ Lerna's configuration is split into two files: `lerna.json` and `nx.json`.
 
 # Lerna.json
 
-### useWorkspaces & packages
+### npmClient
 
-Since Lerna was created, all major package managers (npm, yarn, and pnpm) have added the ability to cross-link packages
-in the same repo and dedupe node modules. If you'd like Lerna to delegate this process to the package manager you use,
-set `useWorkspaces: true` in `lerna.json`.
+It is important to set this value if you are not using `npm` as your package manager (e.g. if you are using `yarn` or `pnpm`) so that lerna can adjust some of its internal logic when resolving configuration and packages. This is particularly true in the case of `pnpm` because it uses a separate `pnpm-workspaces.yaml` file to define its workspaces configuration.
 
-```json title="lerna.json"
-{
-  "useWorkspaces": true
-}
-```
+### packages
 
-If you don't have `useWorkspaces` set to true, you need to set the `packages` property which will tell Lerna where to
-look for `package.json` files.
+By default, lerna will try and reuse any `workspaces` configuration you may have from your package manager of choice. If you prefer to specify a subset of your available packages for lerna to operate on, you can use the `packages` property which will tell Lerna where to look for `package.json` files.
 
 ```json title="lerna.json"
 {
@@ -33,8 +26,7 @@ look for `package.json` files.
 
 ### version
 
-Lerna has two modes of publishing packages: `fixed` and `independent`. When using the fixed mode, all the packages will
-be published using the same version. The last published version is recorded in `lerna.json` as follows:
+Lerna has two modes of publishing packages: `fixed` and `independent`. When using the fixed mode, all the affected packages will be published using the same version. The last published version is recorded in `lerna.json` as follows:
 
 ```json title="lerna.json"
 {
@@ -50,9 +42,11 @@ When using the independent mode, every package is versioned separately, and `ler
 }
 ```
 
+See the [version and publish docs](../features/version-and-publish.md) for more details.
+
 ### commands
 
-The `lerna.json` files can also encode commands options, as follows:
+The `lerna.json` files can also encode options for each command like so:
 
 ```json
 {
@@ -69,18 +63,10 @@ Find the available options in [the API docs](/docs/api-reference/commands).
 
 # Nx.json
 
-> NOTE: "{projectRoot}" and "{workspaceRoot}" are special syntax supported by the task-runner, which will be appropriately interpolated internally when the command runs. You should therefore not replace "{projectRoot}" or "{workspaceRoot}" with fixed paths as this makes your configuration less flexible.
+> NOTE: "\{projectRoot\}" and "\{workspaceRoot\}" are special syntax supported by the task-runner, which will be appropriately interpolated internally when the command runs. You should therefore not replace "\{projectRoot\}" or "\{workspaceRoot\}" with fixed paths as this makes your configuration less flexible.
 
 ```json title="nx.json"
 {
-  "tasksRunnerOptions": {
-    "default": {
-      "runner": "nx/tasks-runners/default",
-      "options": {
-        "cacheableOperations": ["build", "test"]
-      }
-    }
-  },
   "namedInputs": {
     "default": ["{projectRoot}/**/*"],
     "prod": ["!{projectRoot}/**/*.spec.tsx"]
@@ -89,31 +75,26 @@ Find the available options in [the API docs](/docs/api-reference/commands).
     "build": {
       "dependsOn": ["prebuild", "^build"],
       "inputs": ["prod", "^prod"],
-      "outputs": ["{projectRoot}/dist"]
+      "outputs": ["{projectRoot}/dist"],
+      "cache": true
     },
     "test": {
-      "inputs": ["default", "^prod", "{workspaceRoot}/jest.config.ts"]
+      "inputs": ["default", "^prod", "{workspaceRoot}/jest.config.ts"],
+      "cache": true
     }
   }
 }
 ```
 
-## taskRunnerOptions
-
-### runner
-
-Everything in Nx is customizable, including running npm scripts. Most of the time you will either use the default runner
-or the `@nrwl/nx-cloud` runner.
-
-### cacheableOperations
-
-The `cacheableOperations` array defines the list of npm scripts/operations that are cached by Nx. In most repos all
-non-long running tasks (i.e., not `serve`) should be cacheable.
-
 ## Target Defaults
 
 Targets are npm script names. You can add metadata associated with say the build script of each project in the repo in
 the `targetDefaults` section.
+
+### cache
+
+When set to `true`, tells Nx to cache the results of running the script. In most repos all
+non-long running tasks (i.e., not `serve`) should be cacheable.
 
 ### dependsOn
 
@@ -294,3 +275,7 @@ Using pseudocode `outputs = packageJson.targets.build.outputs || nxJson.targetDe
 The `"implicitDependencies": ["projecta", "!projectb"]` line tells Nx that the parent project depends on `projecta` even
 though there is no dependency in its `package.json`. Nx will treat such a dependency in the same way it treats explicit
 dependencies. It also tells Nx that even though there is an explicit dependency on `projectb`, it should be ignored.
+
+## Additional Configuration
+
+For additional ways to configure tasks and caching, see the relevant [Nx documentation](https://nx.dev/recipes/running-tasks).

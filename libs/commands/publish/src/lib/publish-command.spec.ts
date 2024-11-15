@@ -1,6 +1,7 @@
 import {
-  collectUpdates as _collectUpdates,
+  collectProjectUpdates as _collectUpdates,
   getOneTimePassword as _getOneTimePassword,
+  gitCheckout as _gitCheckout,
   npmDistTag as _npmDistTag,
   npmPublish as _npmPublish,
   packDirectory as _packDirectory,
@@ -10,6 +11,7 @@ import { commandRunner, commitChangeToPackage, initFixtureFactory, loggingOutput
 import fsmain from "fs";
 import fs from "fs-extra";
 import path from "path";
+import { setupLernaVersionMocks } from "../../__fixtures__/lerna-version-mocks";
 
 // eslint-disable-next-line jest/no-mocks-import
 jest.mock("@lerna/core", () => require("@lerna/test-helpers/__mocks__/@lerna/core"));
@@ -25,20 +27,12 @@ jest.mock("./get-npm-username", () => ({
   getNpmUsername: jest.fn(() => Promise.resolve("lerna-test")),
 }));
 jest.mock("./get-two-factor-auth-required");
-jest.mock("./get-unpublished-packages", () => ({
-  getUnpublishedPackages: jest.fn(() => Promise.resolve([])),
+jest.mock("./get-projects-with-unpublished-packages", () => ({
+  getProjectsWithUnpublishedPackages: jest.fn(() => Promise.resolve([])),
 }));
-jest.mock("./git-checkout");
 
 // lerna version mocks
-jest.mock("@lerna/commands/version/lib/git-push");
-jest.mock("@lerna/commands/version/lib/is-anything-committed", () => ({
-  isAnythingCommitted: jest.fn().mockResolvedValue(true),
-}));
-jest.mock("@lerna/commands/version/lib/is-behind-upstream");
-jest.mock("@lerna/commands/version/lib/remote-branch-exists", () => ({
-  remoteBranchExists: jest.fn().mockResolvedValue(true),
-}));
+setupLernaVersionMocks();
 
 const promptConfirmation = jest.mocked(_promptConfirmation);
 const getOneTimePassword = jest.mocked(_getOneTimePassword);
@@ -49,14 +43,9 @@ const npmPublish = _npmPublish as any;
 const collectUpdates = _collectUpdates as any;
 const packDirectory = _packDirectory as any;
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { getNpmUsername } = require("./get-npm-username");
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { verifyNpmPackageAccess } = require("./verify-npm-package-access");
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { getTwoFactorAuthRequired } = require("./get-two-factor-auth-required");
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { gitCheckout } = require("./git-checkout");
+import { getNpmUsername as _getNpmUsername } from "./get-npm-username";
+import { getTwoFactorAuthRequired as _getTwoFactorAuthRequired } from "./get-two-factor-auth-required";
+import { verifyNpmPackageAccess } from "./verify-npm-package-access";
 
 const initFixture = initFixtureFactory(__dirname);
 
@@ -64,6 +53,11 @@ const initFixture = initFixtureFactory(__dirname);
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const lernaPublish = commandRunner(require("../command"));
 
+const getNpmUsername = _getNpmUsername as jest.MockedFunction<typeof _getNpmUsername>;
+const getTwoFactorAuthRequired = _getTwoFactorAuthRequired as jest.MockedFunction<
+  typeof _getTwoFactorAuthRequired
+>;
+const gitCheckout = _gitCheckout as jest.MockedFunction<typeof _gitCheckout>;
 gitCheckout.mockImplementation(() => Promise.resolve());
 
 describe("PublishCommand", () => {
@@ -170,6 +164,7 @@ Map {
       expect(npmPublish.order()).toEqual([
         "package-1",
         "package-4",
+        "package-6",
         "package-2",
         "package-3",
         // package-5 is private
@@ -224,28 +219,6 @@ Map {
         "package-3",
         // package-5 is private
       ]);
-    });
-
-    it("produces a topological ordering that _excludes_ devDependencies when value is 'dependencies' (DEPRECATED)", async () => {
-      const cwd = await initFixture("normal");
-
-      await lernaPublish(cwd)("--graph-type", "dependencies");
-
-      expect(npmPublish.order()).toEqual([
-        "package-1",
-        // package-3 has a peer/devDependency on package-2
-        "package-3",
-        "package-4",
-        "package-2",
-        // package-5 is private
-      ]);
-
-      const logMessages = loggingOutput("warn");
-      expect(logMessages).toMatchInlineSnapshot(`
-        Array [
-          "--graph-type=dependencies is deprecated and will be removed in lerna v6. If you have a use-case you feel requires it please open an issue to discuss: https://github.com/lerna/lerna/issues/new/choose",
-        ]
-      `);
     });
 
     it("throws an error when value is _not_ 'all' or 'dependencies'", async () => {
@@ -409,7 +382,7 @@ Map {
       ];
       expect(fsSpy).toHaveBeenCalled();
       expect(fsSpy).toHaveBeenCalledWith(
-        "./outputs/lerna-publish-summary.json",
+        path.join(process.cwd(), "outputs/lerna-publish-summary.json"),
         JSON.stringify(expectedJsonResponse)
       );
     });
@@ -425,9 +398,28 @@ Map {
         { packageName: "package-3", version: "1.0.1" },
         { packageName: "package-4", version: "1.0.1" },
       ];
+
       expect(fsSpy).toHaveBeenCalled();
       expect(fsSpy).toHaveBeenCalledWith(
-        "./lerna-publish-summary.json",
+        path.join(process.cwd(), "./lerna-publish-summary.json"),
+        JSON.stringify(expectedJsonResponse)
+      );
+    });
+
+    it("creates the summary file in the provided file path", async () => {
+      const cwd = await initFixture("normal");
+      const fsSpy = jest.spyOn(fsmain, "writeFileSync");
+      await lernaPublish(cwd)("--summary-file", "./outputs/lerna-publish-summary.json");
+
+      const expectedJsonResponse = [
+        { packageName: "package-1", version: "1.0.1" },
+        { packageName: "package-2", version: "1.0.1" },
+        { packageName: "package-3", version: "1.0.1" },
+        { packageName: "package-4", version: "1.0.1" },
+      ];
+      expect(fsSpy).toHaveBeenCalled();
+      expect(fsSpy).toHaveBeenCalledWith(
+        path.join(process.cwd(), "outputs/lerna-publish-summary.json"),
         JSON.stringify(expectedJsonResponse)
       );
     });
@@ -509,7 +501,7 @@ Map {
     });
 
     it("is implied when npm username is undefined", async () => {
-      getNpmUsername.mockImplementationOnce(() => Promise.resolve());
+      getNpmUsername.mockImplementationOnce(() => Promise.resolve(""));
 
       const cwd = await initFixture("normal");
 
@@ -549,6 +541,7 @@ Map {
 
       await fs.outputJSON(path.join(cwd, "lerna.json"), {
         version: "1.0.0",
+        packages: ["packages/*"],
         granularPathspec: false,
       });
       await lernaPublish(cwd)();

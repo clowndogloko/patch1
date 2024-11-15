@@ -1,7 +1,7 @@
-import log from "npmlog";
+import log from "./npmlog";
 
 let pulsers = 0;
-let pulse: NodeJS.Timer;
+let pulse: NodeJS.Timeout;
 
 function pulseStart(prefix: any) {
   pulsers += 1;
@@ -10,7 +10,7 @@ function pulseStart(prefix: any) {
     return;
   }
 
-  pulse = setInterval(() => log["gauge"].pulse(prefix), 150);
+  pulse = setInterval(() => log.gauge.pulse(prefix), 150);
 }
 
 function pulseStop() {
@@ -23,7 +23,9 @@ function pulseStop() {
   clearInterval(pulse);
 }
 
-export function pulseTillDone(prefix: string, promise: any) {
+export function pulseTillDone(promise: any): any;
+export function pulseTillDone(prefix: string, promise: any): any;
+export function pulseTillDone(prefix: string | any, promise?: any): any {
   if (!promise) {
     /* eslint-disable no-param-reassign */
     promise = prefix;

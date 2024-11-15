@@ -33,10 +33,9 @@ const command: CommandModule = {
         },
       });
   },
-  handler(argv) {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    return require(".")(argv);
+  async handler(argv) {
+    return (await import(".")).factory(argv);
   },
 };
 
-module.exports = command;
+export = command;

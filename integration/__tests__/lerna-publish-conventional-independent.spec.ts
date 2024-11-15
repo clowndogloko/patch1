@@ -1,4 +1,9 @@
-import { cliRunner, cloneFixtureFactory, commitChangeToPackage } from "@lerna/test-helpers";
+import {
+  changelogSerializer,
+  cliRunner,
+  cloneFixtureFactory,
+  commitChangeToPackage,
+} from "@lerna/test-helpers";
 import fs from "fs-extra";
 import globby from "globby";
 import os from "os";
@@ -7,8 +12,7 @@ import path from "path";
 const cloneFixture = cloneFixtureFactory(path.resolve(__dirname, "../../libs/commands/publish"));
 
 // stabilize changelog commit SHA and datestamp
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-expect.addSnapshotSerializer(require("@lerna/test-helpers/src/lib/serializers/serialize-changelog"));
+expect.addSnapshotSerializer(changelogSerializer);
 
 const env = {
   // never actually upload when calling `npm publish`
@@ -40,12 +44,14 @@ Changes:
  - package-3: 3.0.0 => 4.0.0
  - package-4: 4.0.0 => 4.1.0
  - package-5: 5.0.0 => 5.1.0 (private)
+ - package-6: 0.1.0 => 0.2.0
 
 Successfully published:
  - package-1@1.1.0
  - package-2@2.1.0
  - package-3@4.0.0
  - package-4@4.1.0
+ - package-6@0.2.0
 `);
 
   // ensure changelog header is not duplicated

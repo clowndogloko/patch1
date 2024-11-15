@@ -1,20 +1,22 @@
 import {
   checkWorkingTree as _checkWorkingTree,
-  collectUpdates as _collectUpdates,
+  collectProjectUpdates as _collectUpdates,
+  output as _output,
   promptConfirmation,
   promptSelectOne as _promptSelectOne,
   throwIfUncommitted as _throwIfUncommitted,
-  output as _output,
 } from "@lerna/core";
 import {
   commandRunner,
   getCommitMessage,
   gitAdd,
   gitCommit,
+  gitSHASerializer,
   gitTag,
   initFixtureFactory,
   loggingOutput,
   showCommit,
+  tempDirSerializer,
 } from "@lerna/test-helpers";
 import execa from "execa";
 import fs from "fs-extra";
@@ -38,28 +40,36 @@ jest.mock("./remote-branch-exists", () => ({
   remoteBranchExists: jest.fn().mockResolvedValue(true),
 }));
 
+import { gitPush as _libPush } from "./git-push";
+import { isAnythingCommitted as _isAnythingCommitted } from "./is-anything-committed";
+import { isBehindUpstream as _isBehindUpstream } from "./is-behind-upstream";
+import { remoteBranchExists as _remoteBranchExists } from "./remote-branch-exists";
+
 const throwIfUncommitted = jest.mocked(_throwIfUncommitted);
 const checkWorkingTree = jest.mocked(_checkWorkingTree);
 
 // The mocked version isn't the same as the real one
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const promptSelectOne = _promptSelectOne as any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const collectUpdates = _collectUpdates as any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const writePkg = _writePkg as any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const output = _output as any;
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { gitPush: libPush } = require("./git-push");
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { isAnythingCommitted } = require("./is-anything-committed");
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { isBehindUpstream } = require("./is-behind-upstream");
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { remoteBranchExists } = require("./remote-branch-exists");
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const libPush = _libPush as any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const isAnythingCommitted = _isAnythingCommitted as any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const isBehindUpstream = _isBehindUpstream as any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const remoteBranchExists = _remoteBranchExists as any;
 
 const initFixture = initFixtureFactory(path.resolve(__dirname, "../../../publish"));
 
 // certain tests need to use the real thing
-const collectUpdatesActual = jest.requireActual("@lerna/core").collectUpdates;
+const collectUpdatesActual = jest.requireActual("@lerna/core").collectProjectUpdates;
 
 // file under test
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -73,8 +83,10 @@ const listDirty = (cwd) =>
   );
 
 // stabilize commit SHA
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-expect.addSnapshotSerializer(require("@lerna/test-helpers/src/lib/serializers/serialize-git-sha"));
+expect.addSnapshotSerializer(gitSHASerializer);
+
+// normalize temp directory paths in snapshots
+expect.addSnapshotSerializer(tempDirSerializer);
 
 describe("VersionCommand", () => {
   describe("normal mode", () => {
@@ -102,6 +114,13 @@ describe("VersionCommand", () => {
         })
       );
       expect(output.logged()).toMatchSnapshot("console output");
+    });
+
+    it("should error when --skip-git is used", async () => {
+      const testDir = await initFixture("normal");
+      await expect(lernaVersion(testDir)("--skip-git")).rejects.toThrowErrorMatchingInlineSnapshot(
+        `"--skip-git was replaced by --no-git-tag-version --no-push. We recommend running \`lerna repair\` in order to ensure your lerna.json is up to date, otherwise check your CLI usage and/or any configs you extend from."`
+      );
     });
 
     it("throws an error when --independent is passed", async () => {
@@ -209,6 +228,7 @@ describe("VersionCommand", () => {
       promptSelectOne.chooseBump("major");
       promptSelectOne.chooseBump("minor");
       promptSelectOne.chooseBump("patch");
+      promptSelectOne.chooseBump("minor");
 
       const testDir = await initFixture("independent");
       await lernaVersion(testDir)(); // --independent is only valid in InitCommand
@@ -251,6 +271,7 @@ describe("VersionCommand", () => {
       await setupPreCommitHook(cwd);
       await fs.outputJSON(path.join(cwd, "lerna.json"), {
         version: "1.0.0",
+        packages: ["packages/*"],
         command: {
           publish: {
             commitHooks: false,
@@ -292,6 +313,7 @@ describe("VersionCommand", () => {
 
       await fs.outputJSON(path.join(testDir, "lerna.json"), {
         version: "1.0.0",
+        packages: ["packages/*"],
         command: {
           publish: {
             gitTagVersion: false,
@@ -302,15 +324,6 @@ describe("VersionCommand", () => {
 
       const logMessages = loggingOutput("info");
       expect(logMessages).toContain("Skipping git tag/commit");
-    });
-
-    it("is implied by --skip-git", async () => {
-      const testDir = await initFixture("normal");
-      await lernaVersion(testDir)("--skip-git");
-
-      const logMessages = loggingOutput();
-      expect(logMessages).toContain("Skipping git tag/commit");
-      expect(logMessages).toContain("--skip-git has been replaced by --no-git-tag-version --no-push");
     });
 
     it("skips dirty working tree validation", async () => {
@@ -356,6 +369,7 @@ describe("VersionCommand", () => {
       });
       await fs.outputJSON(path.join(cwd, "lerna.json"), {
         version: "1.0.0",
+        packages: ["packages/*"],
         granularPathspec: false,
       });
       // a "dynamic", intentionally unversioned package must _always_ be forced
@@ -389,6 +403,7 @@ describe("VersionCommand", () => {
 
       await fs.outputJSON(path.join(testDir, "lerna.json"), {
         version: "1.0.0",
+        packages: ["packages/*"],
         command: {
           version: {
             private: false,
@@ -424,6 +439,7 @@ describe("VersionCommand", () => {
 
       await fs.outputJSON(path.join(testDir, "lerna.json"), {
         version: "1.0.0",
+        packages: ["packages/*"],
         command: {
           publish: {
             push: false,
@@ -434,15 +450,6 @@ describe("VersionCommand", () => {
 
       const logMessages = loggingOutput("info");
       expect(logMessages).toContain("Skipping git push");
-    });
-
-    it("is implied by --skip-git", async () => {
-      const testDir = await initFixture("normal");
-      await lernaVersion(testDir)("--skip-git");
-
-      const logMessages = loggingOutput();
-      expect(logMessages).toContain("Skipping git push");
-      expect(logMessages).toContain("--skip-git has been replaced by --no-git-tag-version --no-push");
     });
   });
 
@@ -460,6 +467,7 @@ describe("VersionCommand", () => {
 
       await fs.outputJSON(path.join(testDir, "lerna.json"), {
         version: "1.0.0",
+        packages: ["packages/*"],
         command: {
           publish: {
             tagVersionPrefix: "durable",
@@ -491,6 +499,73 @@ describe("VersionCommand", () => {
 
       const message = await getCommitMessage(testDir);
       expect(message).toBe("v1.0.1");
+    });
+  });
+
+  describe("--json", () => {
+    it("prints json format", async () => {
+      const testDir = await initFixture("normal");
+
+      await lernaVersion(testDir)("--yes", "--json", "patch");
+
+      // Output should be a parseable string
+      const jsonOutput = JSON.parse(output.logged());
+      expect(jsonOutput).toMatchInlineSnapshot(`
+Array [
+  Object {
+    "location": "__TEST_ROOTDIR__/packages/package-1",
+    "name": "package-1",
+    "newVersion": "1.0.1",
+    "private": false,
+    "version": "1.0.0",
+  },
+  Object {
+    "location": "__TEST_ROOTDIR__/packages/package-2",
+    "name": "package-2",
+    "newVersion": "1.0.1",
+    "private": false,
+    "version": "1.0.0",
+  },
+  Object {
+    "location": "__TEST_ROOTDIR__/packages/package-3",
+    "name": "package-3",
+    "newVersion": "1.0.1",
+    "private": false,
+    "version": "1.0.0",
+  },
+  Object {
+    "location": "__TEST_ROOTDIR__/packages/package-4",
+    "name": "package-4",
+    "newVersion": "1.0.1",
+    "private": false,
+    "version": "1.0.0",
+  },
+  Object {
+    "location": "__TEST_ROOTDIR__/packages/package-5",
+    "name": "package-5",
+    "newVersion": "1.0.1",
+    "private": true,
+    "version": "1.0.0",
+  },
+]
+`);
+    });
+
+    it("prints NO json format", async () => {
+      const testDir = await initFixture("normal");
+
+      await lernaVersion(testDir)("--yes", "patch");
+
+      expect(output.logged()).toMatchInlineSnapshot(`
+"
+Changes:
+ - package-1: 1.0.0 => 1.0.1
+ - package-2: 1.0.0 => 1.0.1
+ - package-3: 1.0.0 => 1.0.1
+ - package-4: 1.0.0 => 1.0.1
+ - package-5: 1.0.0 => 1.0.1 (private)
+"
+`);
     });
   });
 
@@ -531,6 +606,7 @@ describe("VersionCommand", () => {
 
       await fs.outputJSON(path.join(testDir, "lerna.json"), {
         version: "1.0.0",
+        packages: ["packages/*"],
         command: {
           publish: {
             gitRemote: "durable",
@@ -560,12 +636,13 @@ describe("VersionCommand", () => {
       expect(checkWorkingTree).not.toHaveBeenCalled();
     });
 
-    it("ignores custom messages", async () => {
+    it("considers custom messages", async () => {
       const testDir = await initFixture("normal", "preserved");
-      await lernaVersion(testDir)("-m", "ignored", "--amend");
+      await lernaVersion(testDir)("-m", "custom", "--amend");
 
       const message = await getCommitMessage(testDir);
-      expect(message).toBe("preserved");
+
+      expect(message).toBe("custom");
     });
   });
 

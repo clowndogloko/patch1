@@ -113,8 +113,7 @@ You will need two different terminal windows for this as one of them will contai
 - Run `npm run local-registry start` in Terminal 1 (keep it running)
 - Run `npm adduser --registry http://localhost:4873` in Terminal 2 (real credentials are not required, you just need to
   be logged in. You can use test/test/test@test.io.)
-- Run `npm run local-registry enable` in Terminal 2
-- Run `npm run lerna-release 999.9.9 --local` in Terminal 2 - you can choose any nonexistent version number here, but it's recommended to use something which is different from the current major
+- Run `npm --registry=http://localhost:4873/ run lerna-release 999.9.9 --local` in Terminal 2 - you can choose any nonexistent version number here, but it's recommended to use something which is different from the current major
 
 You can then install your local version of lerna wherever you want by leveraging the `--registry` flag on the npm/npx client.
 
@@ -133,7 +132,7 @@ npx lerna --version # 999.9.9
 
 ### Run E2E Tests
 
-> NOTE: You will need to have `pnpm` installed at version `7.7.0` or later in order to run the full suite of e2e tests
+> NOTE: You will need to have `pnpm` installed at version `8.10.2` or later in order to run the full suite of e2e tests
 
 In addition to our lower level testing, we also have a suite of e2e tests which actually publish our packages to a locally running npm registry (using verdaccio in the same way as described in the section above) and use the `lerna` CLI directly. These are our most valuable tests because they get us as close as possible to the experience of our users.
 

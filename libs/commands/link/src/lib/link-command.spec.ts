@@ -1,10 +1,13 @@
-import { createSymlink as _createSymlink } from "@lerna/core";
+import { createSymlink as _createSymlink } from "@lerna/legacy-core";
 import { commandRunner, initFixtureFactory, normalizeRelativeDir } from "@lerna/test-helpers";
 
 const initFixture = initFixtureFactory(__dirname);
 
 // eslint-disable-next-line jest/no-mocks-import
 jest.mock("@lerna/core", () => require("@lerna/test-helpers/__mocks__/@lerna/core"));
+
+// eslint-disable-next-line jest/no-mocks-import
+jest.mock("@lerna/legacy-core", () => require("@lerna/test-helpers/__mocks__/@lerna/legacy-core"));
 
 const createSymlink = jest.mocked(_createSymlink);
 
@@ -13,7 +16,7 @@ const createSymlink = jest.mocked(_createSymlink);
 const lernaLink = commandRunner(require("../command"));
 
 // assertion helpers
-const symlinkedDirectories = (testDir) =>
+const symlinkedDirectories = (testDir: string) =>
   createSymlink.mock.calls
     .slice()
     // ensure sort is always consistent, despite promise variability
@@ -28,10 +31,10 @@ const symlinkedDirectories = (testDir) =>
         return b[1] < a[1] ? 1 : -1;
       }
 
-      return b[0] < a[0] ? 1 : -1;
+      return (b[0] ?? "") < (a[0] ?? "") ? 1 : -1;
     })
     .map(([src, dest, type]) => ({
-      _src: normalizeRelativeDir(testDir, src),
+      _src: normalizeRelativeDir(testDir, src!),
       dest: normalizeRelativeDir(testDir, dest),
       type,
     }));

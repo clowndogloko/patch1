@@ -3,9 +3,9 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 
-/* eslint-disable @nrwl/nx/enforce-module-boundaries */
+/* eslint-disable @nx/enforce-module-boundaries */
 // nx-ignore-next-line
-import { gitAdd, gitCommit, gitTag, initFixtureFactory } from "@lerna/test-helpers";
+import { changelogSerializer, gitAdd, gitCommit, gitTag, initFixtureFactory } from "@lerna/test-helpers";
 import fs from "fs-extra";
 import path from "path";
 import { getPackages } from "../project/index";
@@ -13,14 +13,14 @@ import { getPackages } from "../project/index";
 const initFixture = initFixtureFactory(__dirname);
 
 // file under test
+import { applyBuildMetadata } from "./apply-build-metadata";
 import { getChangelogConfig } from "./get-changelog-config";
 import { recommendVersion } from "./recommend-version";
 import { updateChangelog } from "./update-changelog";
-import { applyBuildMetadata } from "./apply-build-metadata";
 
 // stabilize changelog commit SHA and datestamp
 // nx-ignore-next-line
-expect.addSnapshotSerializer(require("@lerna/test-helpers/src/lib/serializers/serialize-changelog"));
+expect.addSnapshotSerializer(changelogSerializer);
 
 describe("conventional-commits", () => {
   beforeEach(() => {
@@ -263,6 +263,21 @@ describe("conventional-commits", () => {
 
       const bump = await recommendVersion(pkg1, "fixed", {
         changelogPreset: "./scripts/local-preset.js",
+      });
+      expect(bump).toBe("1.1.0");
+    });
+
+    it("supports async function presets", async () => {
+      const cwd = await initFixture("fixed");
+      const [pkg1] = await getPackages(cwd);
+
+      // make a change in package-1
+      await pkg1.set("changed", 1).serialize();
+      await gitAdd(cwd, pkg1.manifestLocation);
+      await gitCommit(cwd, "feat: changed 1");
+
+      const bump = await recommendVersion(pkg1, "fixed", {
+        changelogPreset: "./scripts/local-preset-async.js",
       });
       expect(bump).toBe("1.1.0");
     });
@@ -713,6 +728,64 @@ describe("conventional-commits", () => {
         ### Features
 
         * **thing:** added ([SHA](COMMIT_URL))
+      `);
+    });
+
+    it("supports changelogEntryAdditionalMarkdown", async () => {
+      const cwd = await initFixture("fixed");
+      const rootPkg = {
+        // no name
+        location: cwd,
+      };
+
+      await gitTag(cwd, "v1.0.0");
+
+      const [pkg1] = await getPackages(cwd);
+
+      // make a change in package-1
+      await pkg1.set("changed", 1).serialize();
+      await gitAdd(cwd, pkg1.manifestLocation);
+      await gitCommit(cwd, "fix: A second commit for our CHANGELOG");
+
+      // update version
+      await pkg1.set("version", "1.0.1").serialize();
+
+      const [rootChangelogContent] = await Promise.all([
+        updateChangelog(rootPkg, "root", {
+          version: "1.0.1",
+          changelogEntryAdditionalMarkdown: "#### Some title\n\nSome *paragraph*",
+        }).then(getFileContent),
+      ]);
+
+      expect(rootChangelogContent).toMatchInlineSnapshot(`
+        # Change Log
+
+        All notable changes to this project will be documented in this file.
+        See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+
+        ## [1.0.1](/compare/v1.0.0...v1.0.1) (YYYY-MM-DD)
+
+
+        ### Bug Fixes
+
+        * A second commit for our CHANGELOG ([SHA](COMMIT_URL))
+
+        #### Some title
+
+        Some *paragraph*
+
+
+
+
+
+        <a name="1.0.0"></a>
+
+        # 1.0.0 (YYYY-MM-DD)
+
+        ### Features
+
+        * I should be placed in the CHANGELOG
+
       `);
     });
   });

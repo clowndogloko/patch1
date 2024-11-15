@@ -1,23 +1,52 @@
-// TODO: refactor based on TS feedback
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
-
-import { Command, getFilteredPackages, Profiler, runTopologically, ValidationError } from "@lerna/core";
+import {
+  Arguments,
+  Command,
+  CommandConfigOptions,
+  filterProjects,
+  getPackage,
+  Package,
+  Profiler,
+  ProjectGraphProjectNodeWithPackage,
+  runProjectsTopologically,
+  ValidationError,
+} from "@lerna/core";
 import pMap from "p-map";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const childProcess = require("@lerna/child-process");
 
-module.exports = function factory(argv: NodeJS.Process["argv"]) {
+export function factory(argv: Arguments<ExecCommandConfigOptions>) {
   return new ExecCommand(argv);
-};
+}
 
-class ExecCommand extends Command {
-  get requiresGit() {
+interface ExecCommandConfigOptions extends CommandConfigOptions {
+  cmd?: string;
+  args?: string[];
+  bail?: boolean;
+  prefix?: boolean;
+  parallel?: boolean;
+  profile?: boolean;
+  profileLocation?: string;
+  rejectCycles?: boolean;
+  "--"?: string[];
+}
+
+export class ExecCommand extends Command<ExecCommandConfigOptions> {
+  command?: string;
+  args?: string[];
+  bail?: boolean;
+  prefix?: boolean;
+  env?: NodeJS.ProcessEnv;
+  filteredProjects: ProjectGraphProjectNodeWithPackage[] = [];
+  count?: number;
+  packagePlural?: string;
+  joinedCommand?: string;
+
+  override get requiresGit() {
     return false;
   }
 
-  override initialize() {
+  override async initialize() {
     const dashedArgs = this.options["--"] || [];
 
     this.command = this.options.cmd || dashedArgs.shift();
@@ -35,21 +64,14 @@ class ExecCommand extends Command {
     // so cache it here to reduce churn during tighter loops
     this.env = Object.assign({}, process.env);
 
-    let chain = Promise.resolve();
+    this.filteredProjects = filterProjects(this.projectGraph, this.execOpts, this.options);
 
-    chain = chain.then(() => getFilteredPackages(this.packageGraph, this.execOpts, this.options));
-    chain = chain.then((filteredPackages) => {
-      this.filteredPackages = filteredPackages;
-    });
-
-    return chain.then(() => {
-      this.count = this.filteredPackages.length;
-      this.packagePlural = this.count === 1 ? "package" : "packages";
-      this.joinedCommand = [this.command].concat(this.args).join(" ");
-    });
+    this.count = this.filteredProjects.length;
+    this.packagePlural = this.count === 1 ? "package" : "packages";
+    this.joinedCommand = [this.command].concat(this.args).join(" ");
   }
 
-  override execute() {
+  override async execute() {
     this.logger.info(
       "",
       "Executing command in %d %s: %j",
@@ -58,51 +80,47 @@ class ExecCommand extends Command {
       this.joinedCommand
     );
 
-    let chain = Promise.resolve();
-
+    let runCommand: () => Promise<unknown>;
     if (this.options.parallel) {
-      chain = chain.then(() => this.runCommandInPackagesParallel());
+      runCommand = () => this.runCommandInPackagesParallel();
     } else if (this.toposort) {
-      chain = chain.then(() => this.runCommandInPackagesTopological());
+      runCommand = () => this.runCommandInPackagesTopological();
     } else {
-      chain = chain.then(() => this.runCommandInPackagesLexical());
+      runCommand = () => this.runCommandInPackagesLexical();
     }
 
     if (this.bail) {
       // only the first error is caught
-      chain = chain.catch((err) => {
+      try {
+        await runCommand();
+      } catch (err: any) {
         process.exitCode = err.exitCode;
-
         // rethrow to halt chain and log properly
         throw err;
-      });
+      }
     } else {
+      const results = (await runCommand()) as { failed: boolean; exitCode: number }[];
       // detect error (if any) from collected results
-      chain = chain.then((results) => {
-        /* istanbul ignore else */
-        if (results.some((result) => result.failed)) {
-          // propagate "highest" error code, it's probably the most useful
-          const codes = results.filter((result) => result.failed).map((result) => result.exitCode);
-          const exitCode = Math.max(...codes, 1);
+      if (results.some((result) => result.failed)) {
+        // propagate "highest" error code, it's probably the most useful
+        const codes = results.filter((result) => result.failed).map((result) => result.exitCode);
+        const exitCode = Math.max(...codes, 1);
 
-          this.logger.error("", "Received non-zero exit code %d during execution", exitCode);
-          process.exitCode = exitCode;
-        }
-      });
+        this.logger.error("", "Received non-zero exit code %d during execution", exitCode);
+        process.exitCode = exitCode;
+      }
     }
 
-    return chain.then(() => {
-      this.logger.success(
-        "exec",
-        "Executed command in %d %s: %j",
-        this.count,
-        this.packagePlural,
-        this.joinedCommand
-      );
-    });
+    this.logger.success(
+      "exec",
+      "Executed command in %d %s: %j",
+      this.count,
+      this.packagePlural,
+      this.joinedCommand
+    );
   }
 
-  getOpts(pkg) {
+  private getOpts(pkg: Package) {
     // these options are passed _directly_ to execa
     return {
       cwd: pkg.location,
@@ -117,15 +135,15 @@ class ExecCommand extends Command {
     };
   }
 
-  getRunner() {
+  private getRunner() {
     return this.options.stream
-      ? (pkg) => this.runCommandInPackageStreaming(pkg)
-      : (pkg) => this.runCommandInPackageCapturing(pkg);
+      ? (pkg: Package) => this.runCommandInPackageStreaming(pkg)
+      : (pkg: Package) => this.runCommandInPackageCapturing(pkg);
   }
 
-  runCommandInPackagesTopological() {
-    let profiler;
-    let runner;
+  private runCommandInPackagesTopological() {
+    let profiler: Profiler | undefined;
+    let runner: (pkg: Package) => Promise<unknown>;
 
     if (this.options.profile) {
       profiler = new Profiler({
@@ -135,38 +153,45 @@ class ExecCommand extends Command {
       });
 
       const callback = this.getRunner();
-      runner = (pkg) => profiler.run(() => callback(pkg), pkg.name);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      runner = (pkg) => profiler!.run(() => callback(pkg), pkg.name);
     } else {
       runner = this.getRunner();
     }
 
-    let chain = runTopologically(this.filteredPackages, runner, {
-      concurrency: this.concurrency,
-      rejectCycles: this.options.rejectCycles,
-    });
+    let chain = runProjectsTopologically(
+      this.filteredProjects,
+      this.projectGraph,
+      (p) => runner(getPackage(p)),
+      {
+        concurrency: this.concurrency,
+        rejectCycles: this.options.rejectCycles,
+      }
+    );
 
     if (profiler) {
-      chain = chain.then((results) => profiler.output().then(() => results));
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      chain = chain.then((results) => profiler!.output().then(() => results));
     }
 
     return chain;
   }
 
   runCommandInPackagesParallel() {
-    return pMap(this.filteredPackages, (pkg) => this.runCommandInPackageStreaming(pkg));
+    return pMap(this.filteredProjects, (p) => this.runCommandInPackageStreaming(getPackage(p)));
   }
 
   runCommandInPackagesLexical() {
-    return pMap(this.filteredPackages, this.getRunner(), { concurrency: this.concurrency });
+    return pMap(this.filteredProjects, (p) => this.getRunner()(getPackage(p)), {
+      concurrency: this.concurrency,
+    });
   }
 
-  runCommandInPackageStreaming(pkg) {
+  runCommandInPackageStreaming(pkg: Package) {
     return childProcess.spawnStreaming(this.command, this.args, this.getOpts(pkg), this.prefix && pkg.name);
   }
 
-  runCommandInPackageCapturing(pkg) {
+  runCommandInPackageCapturing(pkg: Package) {
     return childProcess.spawn(this.command, this.args, this.getOpts(pkg));
   }
 }
-
-module.exports.ExecCommand = ExecCommand;

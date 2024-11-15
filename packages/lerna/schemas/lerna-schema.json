@@ -3,7 +3,16 @@
   "$id": "https://lerna.js.org/docs/getting-started#adding-lerna",
   "title": "JSON schema for Lerna configuration",
   "type": "object",
+  "additionalProperties": false,
   "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "The JSON schema version used to validate this configuration file"
+    },
+    "extends": {
+      "type": "string",
+      "description": "A shareable configuration preset that will be used as the base for this configuration"
+    },
     "version": {
       "type": "string",
       "description": "The version of the repository, or \"independent\" for a repository with independently versioned packages.",
@@ -25,6 +34,7 @@
     },
     "command": {
       "type": "object",
+      "additionalProperties": false,
       "description": "Options for individual Lerna commands.",
       "properties": {
         "add": {
@@ -42,9 +52,6 @@
             },
             "registry": {
               "$ref": "#/$defs/commandOptions/shared/registry"
-            },
-            "noBootstrap": {
-              "$ref": "#/$defs/commandOptions/add/noBootstrap"
             },
             "bootstrap": {
               "$ref": "#/$defs/commandOptions/add/bootstrap"
@@ -111,9 +118,6 @@
             "hoist": {
               "$ref": "#/$defs/commandOptions/bootstrap/hoist"
             },
-            "nohoist": {
-              "$ref": "#/$defs/commandOptions/bootstrap/nohoist"
-            },
             "mutex": {
               "$ref": "#/$defs/commandOptions/bootstrap/mutex"
             },
@@ -128,9 +132,6 @@
             },
             "strict": {
               "$ref": "#/$defs/commandOptions/bootstrap/strict"
-            },
-            "useWorkspaces": {
-              "$ref": "#/$defs/commandOptions/bootstrap/useWorkspaces"
             },
             "forceLocal": {
               "$ref": "#/$defs/commandOptions/shared/forceLocal"
@@ -202,6 +203,9 @@
             },
             "conventionalGraduate": {
               "$ref": "#/$defs/commandOptions/shared/conventionalGraduate"
+            },
+            "forceConventionalGraduate": {
+              "$ref": "#/$defs/commandOptions/shared/forceConventionalGraduate"
             },
             "forcePublish": {
               "$ref": "#/$defs/commandOptions/shared/forcePublish"
@@ -482,14 +486,8 @@
             "parallel": {
               "$ref": "#/$defs/commandOptions/shared/parallel"
             },
-            "noBail": {
-              "$ref": "#/$defs/commandOptions/shared/noBail"
-            },
             "bail": {
               "$ref": "#/$defs/commandOptions/shared/bail"
-            },
-            "noPrefix": {
-              "$ref": "#/$defs/commandOptions/shared/noPrefix"
             },
             "prefix": {
               "$ref": "#/$defs/commandOptions/shared/prefix"
@@ -620,18 +618,6 @@
             },
             "continueIfNoMatch": {
               "$ref": "#/$defs/filters/continueIfNoMatch"
-            }
-          }
-        },
-        "init": {
-          "type": "object",
-          "description": "Options for the `init` command.",
-          "properties": {
-            "exact": {
-              "$ref": "#/$defs/commandOptions/shared/exact"
-            },
-            "independent": {
-              "$ref": "#/$defs/commandOptions/init/independent"
             }
           }
         },
@@ -783,17 +769,11 @@
             "gitHead": {
               "$ref": "#/$defs/commandOptions/publish/gitHead"
             },
-            "graphType": {
-              "$ref": "#/$defs/commandOptions/publish/graphType"
-            },
             "ignorePrepublish": {
               "$ref": "#/$defs/commandOptions/shared/ignorePrepublish"
             },
             "ignoreScripts": {
               "$ref": "#/$defs/commandOptions/shared/ignoreScripts"
-            },
-            "noGranularPathspec": {
-              "$ref": "#/$defs/commandOptions/shared/noGranularPathspec"
             },
             "granularPathspec": {
               "$ref": "#/$defs/commandOptions/shared/granularPathspec"
@@ -807,23 +787,23 @@
             "requireScripts": {
               "$ref": "#/$defs/commandOptions/publish/requireScripts"
             },
-            "noGitReset": {
-              "$ref": "#/$defs/commandOptions/publish/noGitReset"
-            },
             "gitReset": {
               "$ref": "#/$defs/commandOptions/publish/gitReset"
             },
             "tempTag": {
               "$ref": "#/$defs/commandOptions/publish/tempTag"
             },
-            "noVerifyAccess": {
-              "$ref": "#/$defs/commandOptions/publish/noVerifyAccess"
-            },
             "verifyAccess": {
               "$ref": "#/$defs/commandOptions/publish/verifyAccess"
             },
             "includePrivate": {
               "$ref": "#/$defs/commandOptions/publish/includePrivate"
+            },
+            "directory": {
+              "$ref": "#/$defs/commandOptions/publish/directory"
+            },
+            "assets": {
+              "$ref": "#/$defs/commandOptions/publish/assets"
             },
 
             "npmClient": {
@@ -893,14 +873,8 @@
             "parallel": {
               "$ref": "#/$defs/commandOptions/shared/parallel"
             },
-            "noBail": {
-              "$ref": "#/$defs/commandOptions/shared/noBail"
-            },
             "bail": {
               "$ref": "#/$defs/commandOptions/shared/bail"
-            },
-            "noPrefix": {
-              "$ref": "#/$defs/commandOptions/shared/noPrefix"
             },
             "prefix": {
               "$ref": "#/$defs/commandOptions/shared/prefix"
@@ -994,6 +968,9 @@
             "conventionalGraduate": {
               "$ref": "#/$defs/commandOptions/shared/conventionalGraduate"
             },
+            "forceConventionalGraduate": {
+              "$ref": "#/$defs/commandOptions/shared/forceConventionalGraduate"
+            },
             "conventionalPrerelease": {
               "$ref": "#/$defs/commandOptions/version/conventionalPrerelease"
             },
@@ -1002,6 +979,9 @@
             },
             "changelogPreset": {
               "$ref": "#/$defs/commandOptions/version/changelogPreset"
+            },
+            "changelogEntryAdditionalMarkdown": {
+              "$ref": "#/$defs/commandOptions/version/changelogEntryAdditionalMarkdown"
             },
             "exact": {
               "$ref": "#/$defs/commandOptions/shared/exact"
@@ -1021,35 +1001,29 @@
             "ignoreScripts": {
               "$ref": "#/$defs/commandOptions/shared/ignoreScripts"
             },
+            "json": {
+              "$ref": "#/$defs/commandOptions/version/json"
+            },
             "message": {
               "$ref": "#/$defs/commandOptions/version/message"
-            },
-            "noChangelog": {
-              "$ref": "#/$defs/commandOptions/version/noChangelog"
             },
             "changelog": {
               "$ref": "#/$defs/commandOptions/version/changelog"
             },
-            "noCommitHooks": {
-              "$ref": "#/$defs/commandOptions/version/noCommitHooks"
-            },
             "commitHooks": {
               "$ref": "#/$defs/commandOptions/version/commitHooks"
-            },
-            "noGitTagVersion": {
-              "$ref": "#/$defs/commandOptions/version/noGitTagVersion"
             },
             "gitTagVersion": {
               "$ref": "#/$defs/commandOptions/version/gitTagVersion"
             },
-            "noGranularPathspec": {
-              "$ref": "#/$defs/commandOptions/shared/noGranularPathspec"
+            "runScriptsOnLockfileUpdate": {
+              "$ref": "#/$defs/commandOptions/version/runScriptsOnLockfileUpdate"
+            },
+            "syncDistVersion": {
+              "$ref": "#/$defs/commandOptions/version/syncDistVersion"
             },
             "granularPathspec": {
               "$ref": "#/$defs/commandOptions/shared/granularPathspec"
-            },
-            "noPush": {
-              "$ref": "#/$defs/commandOptions/version/noPush"
             },
             "push": {
               "$ref": "#/$defs/commandOptions/version/push"
@@ -1218,26 +1192,17 @@
     "peer": {
       "$ref": "#/$defs/commandOptions/add/peer"
     },
-    "noBootstrap": {
-      "$ref": "#/$defs/commandOptions/add/noBootstrap"
-    },
     "bootstrap": {
       "$ref": "#/$defs/commandOptions/add/bootstrap"
     },
     "hoist": {
       "$ref": "#/$defs/commandOptions/bootstrap/hoist"
     },
-    "nohoist": {
-      "$ref": "#/$defs/commandOptions/bootstrap/nohoist"
-    },
     "mutex": {
       "$ref": "#/$defs/commandOptions/bootstrap/mutex"
     },
     "strict": {
       "$ref": "#/$defs/commandOptions/bootstrap/strict"
-    },
-    "useWorkspaces": {
-      "$ref": "#/$defs/commandOptions/bootstrap/useWorkspaces"
     },
 
     "access": {
@@ -1278,10 +1243,6 @@
       "$ref": "#/$defs/commandOptions/import/preserveCommit"
     },
 
-    "independent": {
-      "$ref": "#/$defs/commandOptions/init/independent"
-    },
-
     "canary": {
       "$ref": "#/$defs/commandOptions/publish/canary"
     },
@@ -1297,26 +1258,17 @@
     "gitHead": {
       "$ref": "#/$defs/commandOptions/publish/gitHead"
     },
-    "graphType": {
-      "$ref": "#/$defs/commandOptions/publish/graphType"
-    },
     "otp": {
       "$ref": "#/$defs/commandOptions/publish/otp"
     },
     "requireScripts": {
       "$ref": "#/$defs/commandOptions/publish/requireScripts"
     },
-    "noGitReset": {
-      "$ref": "#/$defs/commandOptions/publish/noGitReset"
-    },
     "gitReset": {
       "$ref": "#/$defs/commandOptions/publish/gitReset"
     },
     "tempTag": {
       "$ref": "#/$defs/commandOptions/publish/tempTag"
-    },
-    "noVerifyAccess": {
-      "$ref": "#/$defs/commandOptions/publish/noVerifyAccess"
     },
     "verifyAccess": {
       "$ref": "#/$defs/commandOptions/publish/verifyAccess"
@@ -1350,26 +1302,14 @@
     "message": {
       "$ref": "#/$defs/commandOptions/version/message"
     },
-    "noChangelog": {
-      "$ref": "#/$defs/commandOptions/version/noChangelog"
-    },
     "changelog": {
       "$ref": "#/$defs/commandOptions/version/changelog"
-    },
-    "noCommitHooks": {
-      "$ref": "#/$defs/commandOptions/version/noCommitHooks"
     },
     "commitHooks": {
       "$ref": "#/$defs/commandOptions/version/commitHooks"
     },
-    "noGitTagVersion": {
-      "$ref": "#/$defs/commandOptions/version/noGitTagVersion"
-    },
     "gitTagVersion": {
       "$ref": "#/$defs/commandOptions/version/gitTagVersion"
-    },
-    "noPush": {
-      "$ref": "#/$defs/commandOptions/version/noPush"
     },
     "push": {
       "$ref": "#/$defs/commandOptions/version/push"
@@ -1411,14 +1351,8 @@
     "parallel": {
       "$ref": "#/$defs/commandOptions/shared/parallel"
     },
-    "noBail": {
-      "$ref": "#/$defs/commandOptions/shared/noBail"
-    },
     "bail": {
       "$ref": "#/$defs/commandOptions/shared/bail"
-    },
-    "noPrefix": {
-      "$ref": "#/$defs/commandOptions/shared/noPrefix"
     },
     "prefix": {
       "$ref": "#/$defs/commandOptions/shared/prefix"
@@ -1434,9 +1368,6 @@
     },
     "ignoreScripts": {
       "$ref": "#/$defs/commandOptions/shared/ignoreScripts"
-    },
-    "noGranularPathspec": {
-      "$ref": "#/$defs/commandOptions/shared/noGranularPathspec"
     },
     "granularPathspec": {
       "$ref": "#/$defs/commandOptions/shared/granularPathspec"
@@ -1552,10 +1483,6 @@
           "type": "boolean",
           "description": "During `lerna add`, save the newly added package to peerDependencies instead of dependencies."
         },
-        "noBootstrap": {
-          "type": "boolean",
-          "description": "Do not automatically chain `lerna bootstrap` after `lerna add`."
-        },
         "bootstrap": {
           "type": "boolean",
           "description": "Automatically chain `lerna bootstrap` after `lerna add`."
@@ -1566,18 +1493,10 @@
           "type": "string",
           "description": "During `lerna bootstrap`, install external dependencies matching [glob] to the repo root."
         },
-        "nohoist": {
-          "type": "string",
-          "description": "During `lerna bootstrap`, don't hoist external dependencies matching [glob] to the repo root."
-        },
         "mutex": {},
         "strict": {
           "type": "boolean",
           "description": "During `lerna bootstrap`, don't allow warnings when hoisting as it causes longer bootstrap times and other issues."
-        },
-        "useWorkspaces": {
-          "type": "boolean",
-          "description": "During `lerna bootstrap`, enable integration with Yarn workspaces."
         }
       },
       "create": {
@@ -1639,12 +1558,6 @@
           "description": "During `lerna import`, when true, preserve the original committer in additional to original author."
         }
       },
-      "init": {
-        "independent": {
-          "type": "boolean",
-          "description": "During `lerna init`, when true, version packages independently."
-        }
-      },
       "publish": {
         "canary": {
           "type": "boolean",
@@ -1666,13 +1579,6 @@
           "type": "string",
           "description": "For `lerna publish`, the explicit SHA to set as gitHead when packing tarballs, only allowed with 'from-package' positional."
         },
-        "graphType": {
-          "type": "string",
-          "enum": ["all", "dependencies"],
-          "description": "DEPRECATED: For `lerna publish`, if you want to ignore devDependencies when considering the package graph you can set this property equal to 'dependencies'. This will be removed in v6 of lerna.",
-          "default": "all",
-          "deprecated": true
-        },
         "otp": {
           "type": "string",
           "description": "During `lerna publish`, supply a one-time password for publishing with two-factor authentication."
@@ -1681,10 +1587,6 @@
           "type": "boolean",
           "description": "During `lerna publish`, when true, execute ./scripts/prepublish.js and ./scripts/postpublish.js, relative to package root."
         },
-        "noGitReset": {
-          "type": "boolean",
-          "description": "During `lerna publish`, when true, do not reset changes to working tree after publishing is complete."
-        },
         "gitReset": {
           "type": "boolean",
           "description": "During `lerna publish`, when true, reset changes to working tree after publishing is complete."
@@ -1692,10 +1594,6 @@
         "tempTag": {
           "type": "boolean",
           "description": "During `lerna publish`, when true, create a temporary tag while publishing."
-        },
-        "noVerifyAccess": {
-          "type": "boolean",
-          "description": "During `lerna publish`, when true, do not verify package read-write access for current npm user."
         },
         "verifyAccess": {
           "type": "boolean",
@@ -1707,6 +1605,34 @@
             "type": "string"
           },
           "description": "During `lerna publish`, include specified private packages when publishing by temporarily removing the private property from the package manifest. This should only be used for testing private packages that will become public. The value \"*\" will include all private packages."
+        },
+        "directory": {
+          "type": "string",
+          "description": "Custom directory to use for the package contents. This can contain dynamic placeholders like `{workspaceRoot}`, `{projectRoot}` and `{projectName}`. See https://lerna.js.org/docs/concepts#configuring-published-files"
+        },
+        "assets": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "from": {
+                    "type": "string",
+                    "description": "A specific file or glob pattern that matches files in the source directory"
+                  },
+                  "to": {
+                    "type": "string",
+                    "description": "The path to copy the file to within the publish directory"
+                  }
+                },
+                "required": ["from", "to"]
+              }
+            ]
+          }
         }
       },
       "run": {
@@ -1738,7 +1664,7 @@
           "type": "boolean",
           "description": "During `lerna version`, when true, amend the existing commit instead of generating a new one."
         },
-        "build-metadata": {
+        "buildMetadata": {
           "describe": "Apply semver-compatible build metadata to the release",
           "requiresArg": true,
           "type": "string"
@@ -1764,6 +1690,10 @@
           ],
           "description": "For `lerna version`, the custom conventional-changelog preset."
         },
+        "changelogEntryAdditionalMarkdown": {
+          "type": "string",
+          "description": "Additional markdown to add to CHANGELOG.md entries."
+        },
         "gitRemote": {
           "type": "string",
           "description": "During `lerna version`, push git changes to the specified remote."
@@ -1773,37 +1703,33 @@
           "description": "During `lerna version`, an official GitHub or GitLab release for every version.",
           "enum": ["github", "gitlab"]
         },
+        "json": {
+          "type": "boolean",
+          "description": "During `lerna version` when true output is provided in json format."
+        },
         "message": {
           "type": "string",
           "description": "For `lerna version`, the custom commit message to use when creating the version commit."
-        },
-        "noChangelog": {
-          "type": "boolean",
-          "description": "During `lerna version`, when true, do not generate CHANGELOG.md files when using --conventional-commits."
         },
         "changelog": {
           "type": "boolean",
           "description": "During `lerna version`, when true, generate CHANGELOG.md files when using --conventional-commits."
         },
-        "noCommitHooks": {
-          "type": "boolean",
-          "description": "During `lerna version`, when true, do not run git commit hooks when committing version changes."
-        },
         "commitHooks": {
           "type": "boolean",
           "description": "During `lerna version`, when true, run git commit hooks when committing version changes."
-        },
-        "noGitTagVersion": {
-          "type": "boolean",
-          "description": "During `lerna version`, when true, do not commit or tag version changes."
         },
         "gitTagVersion": {
           "type": "boolean",
           "description": "During `lerna version`, when true, commit and tag version changes."
         },
-        "noPush": {
+        "runScriptsOnLockfileUpdate": {
           "type": "boolean",
-          "description": "During `lerna version`, when true, do not push tagged commit to git remote."
+          "description": "During `lerna version`, when true, runs lifecycle scripts when syncing the lock file after the version bump."
+        },
+        "syncDistVersion": {
+          "type": "boolean",
+          "description": "During `lerna version`, when true, updates the version of the contents directory."
         },
         "push": {
           "type": "boolean",
@@ -1824,6 +1750,11 @@
         "tagVersionPrefix": {
           "type": "string",
           "description": "During `lerna version`, customize the tag prefix. To remove entirely, pass an empty string."
+        },
+        "premajorVersionBump": {
+          "type": "string",
+          "description": "During `lerna version`, with 'force-patch', ensure premajor version releases are bumped as patch for non-breaking changes.",
+          "enum": ["default", "force-patch"]
         }
       },
       "shared": {
@@ -1843,12 +1774,16 @@
           ],
           "description": "Detect currently prereleased packages that would change to a non-prerelease version. Relevant for `lerna changed` and `lerna version`."
         },
+        "forceConventionalGraduate": {
+          "type": "boolean",
+          "description": "Forces all packages specified by --conventional-graduate to bump their version whether or not they are a prerelease or have changes since the previous version. Relevant for `lerna changed` and `lerna version`."
+        },
         "forceLocal": {
           "type": "boolean",
           "description": "During `lerna bootstrap` and `lerna link`, when true, force local sibling links regardless of version range match."
         },
         "contents": {
-          "type": "boolean",
+          "type": "string",
           "description": "For `lerna bootstrap`, `lerna link`, and `lerna publish`, the subdirectory to use as the source of any links. Must apply to ALL packages."
         },
         "ignoreChanges": {
@@ -1866,17 +1801,9 @@
           "type": "boolean",
           "description": "During `lerna exec` and `lerna run`, run commands with unlimited concurrency, streaming prefixed output."
         },
-        "noBail": {
-          "type": "boolean",
-          "description": "During `lerna exec` and `lerna run`, when true, do not exit with non-zero status if a command fails."
-        },
         "bail": {
           "type": "boolean",
           "description": "During `lerna exec` and `lerna run`, exit with non-zero status if any command fails."
-        },
-        "noPrefix": {
-          "type": "boolean",
-          "description": "During `lerna exec` and `lerna run`, when true, do not prefix output with originating package name."
         },
         "prefix": {
           "type": "boolean",
@@ -1897,10 +1824,6 @@
         "ignoreScripts": {
           "type": "boolean",
           "description": "During `lerna bootstrap`, `lerna publish`, and `lerna version`, don't run ANY lifecycle scripts in bootstrapped packages."
-        },
-        "noGranularPathspec": {
-          "type": "boolean",
-          "description": "During `lerna publish` and `lerna version`, when true, do not reset changes file-by-file, but globally."
         },
         "granularPathspec": {
           "type": "boolean",

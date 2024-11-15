@@ -7,6 +7,8 @@ import {
   gitMerge,
   gitTag,
   initFixtureFactory,
+  tempDirSerializer,
+  windowsPathSerializer,
 } from "@lerna/test-helpers";
 import fs from "fs";
 import path from "path";
@@ -17,11 +19,13 @@ jest.mock("@lerna/core", () => {
   return {
     ...mockCore,
     // we're actually testing integration with git
-    collectUpdates: jest.requireActual("@lerna/core").collectUpdates,
+    collectProjectUpdates: jest.requireActual("@lerna/core").collectProjectUpdates,
+    gitCheckout: jest.requireActual("@lerna/core").gitCheckout,
   };
 });
 
 // The mocked version isn't the same as the real one
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const output = _output as any;
 
 const initFixture = initFixtureFactory(__dirname);
@@ -42,10 +46,8 @@ expect.addSnapshotSerializer({
 });
 
 // normalize temp directory paths in snapshots
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-expect.addSnapshotSerializer(require("@lerna/test-helpers/src/lib/serializers/serialize-windows-paths"));
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-expect.addSnapshotSerializer(require("@lerna/test-helpers/src/lib/serializers/serialize-tempdir"));
+expect.addSnapshotSerializer(windowsPathSerializer);
+expect.addSnapshotSerializer(tempDirSerializer);
 
 describe("version --include-merged-tags", () => {
   const setupGitChangesWithBranch = async (cwd, mainPaths, branchPaths) => {
