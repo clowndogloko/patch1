@@ -1,25 +1,20 @@
-import log from "npmlog";
+import { log } from "@lerna/core";
 
-module.exports.getFetchConfig = getFetchConfig;
+export interface FetchConfig {
+  [key: string]: unknown;
+  fetchRetries?: number;
+  log: typeof log;
+  registry?: string;
+  username?: string;
+}
 
 /**
  * Create a merged options object suitable for npm-registry-fetch.
- * @param {{ [key: string]: unknown }} options
- * @param {Partial<FetchConfig>} [extra]
- * @returns {FetchConfig}
  */
-function getFetchConfig(options, extra) {
+export function getFetchConfig(options: Partial<FetchConfig>, extra: Partial<FetchConfig>): FetchConfig {
   return {
     log,
     ...options,
     ...extra,
   };
 }
-
-/**
- * @typedef {object} FetchConfig
- * @property {number} [fetchRetries]
- * @property {typeof log} log
- * @property {string} [registry]
- * @property {string} [username]
- */

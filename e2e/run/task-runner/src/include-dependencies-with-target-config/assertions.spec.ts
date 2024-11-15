@@ -27,12 +27,13 @@ describe("lerna-run-nx-include-dependencies-with-target-config", () => {
 
     expect(output).toMatchInlineSnapshot(`
       lerna notice cli v999.9.9-e2e.0
+      lerna verb packageConfigs Explicit "packages" configuration found in lerna.json. Resolving packages using the configured glob(s): ["packages/*"]
       lerna verb rootPath /tmp/lerna-e2e/lerna-run-nx-include-dependencies-with-target-config/lerna-workspace
       lerna notice filter including "package-X"
       lerna info filter [ 'package-X' ]
       lerna verb run Nx target configuration was found. Task dependencies will be automatically included.
 
-      >  Lerna (powered by Nx)   Running target print-name for project package-X and 2 tasks it depends on:
+      Lerna (powered by Nx)   Running target print-name for project package-X and 2 tasks it depends on:
 
 
 
@@ -60,7 +61,7 @@ describe("lerna-run-nx-include-dependencies-with-target-config", () => {
 
 
 
-      >  Lerna (powered by Nx)   Successfully ran target print-name for project package-X and 2 tasks it depends on
+      Lerna (powered by Nx)   Successfully ran target print-name for project package-X and 2 tasks it depends on
 
 
 

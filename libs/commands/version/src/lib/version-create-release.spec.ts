@@ -4,6 +4,7 @@ import {
   recommendVersion as _recommendVersion,
 } from "@lerna/core";
 import { commandRunner, initFixtureFactory } from "@lerna/test-helpers";
+import { isEqual } from "lodash";
 
 // eslint-disable-next-line jest/no-mocks-import
 jest.mock("@lerna/core", () => require("@lerna/test-helpers/__mocks__/@lerna/core"));
@@ -21,9 +22,27 @@ jest.mock("./remote-branch-exists", () => ({
   remoteBranchExists: jest.fn().mockResolvedValue(true),
 }));
 
+jest.mock("execa", () => {
+  const execa = jest.requireActual("execa");
+
+  const mockExeca = (...args) => {
+    // assume there are changes if git diff is called
+    if (args[0] === "git" && isEqual(args[1], ["diff", "--staged", "--quiet"])) {
+      return Promise.reject(new Error("Changes found"));
+    }
+
+    return execa(...args);
+  };
+
+  return Object.assign(mockExeca, execa);
+});
+
 // The mocked version isn't the same as the real one
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createGitHubClient = _createGitHubClient as any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createGitLabClient = _createGitLabClient as any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const recommendVersion = _recommendVersion as any;
 
 const initFixture = initFixtureFactory(__dirname);
@@ -103,13 +122,14 @@ describe.each([
       ["package-3", "4.0.0"],
       ["package-4", "4.1.0"],
       ["package-5", "5.0.1"],
+      ["package-6", "0.2.0"],
     ]);
 
     versionBumps.forEach((bump) => recommendVersion.mockResolvedValueOnce(bump));
 
     await lernaVersion(cwd)("--create-release", type, "--conventional-commits");
 
-    expect(client.releases.size).toBe(5);
+    expect(client.releases.size).toBe(6);
     versionBumps.forEach((version, name) => {
       expect(client.releases.get(`${name}@${version}`)).toEqual({
         owner: "lerna",
@@ -144,12 +164,13 @@ describe.each([
 });
 
 describe("legacy option --github-release", () => {
-  it("is translated into --create-release=github", async () => {
-    const cwd = await initFixture("normal");
-
-    await lernaVersion(cwd)("--github-release", "--conventional-commits");
-
-    expect(createGitHubClient.releases.size).toBe(1);
+  it("should error when --github-release is used", async () => {
+    const testDir = await initFixture("normal");
+    await expect(
+      lernaVersion(testDir)("--github-release", "--conventional-commits")
+    ).rejects.toThrowErrorMatchingInlineSnapshot(
+      `"--github-release was replaced by --create-release=github. We recommend running \`lerna repair\` in order to ensure your lerna.json is up to date, otherwise check your CLI usage and/or any configs you extend from."`
+    );
   });
 });
 

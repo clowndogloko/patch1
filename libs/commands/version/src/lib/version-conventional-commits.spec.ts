@@ -1,5 +1,5 @@
 import {
-  collectUpdates as _collectUpdates,
+  collectProjectUpdates as _collectUpdates,
   recommendVersion as _recommendVersion,
   updateChangelog as _updateChangelog,
 } from "@lerna/core";
@@ -26,9 +26,13 @@ jest.mock("./remote-branch-exists", () => ({
 }));
 
 // The mocked version isn't the same as the real one
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const updateChangelog = _updateChangelog as any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const collectUpdates = _collectUpdates as any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const recommendVersion = _recommendVersion as any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const writePkg = _writePkg as any;
 
 const initFixture = initFixtureFactory(path.resolve(__dirname, "../../../publish"));
@@ -37,7 +41,7 @@ const initFixture = initFixtureFactory(path.resolve(__dirname, "../../../publish
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const lernaVersion = commandRunner(require("../command"));
 
-describe("--conventional-commits", () => {
+describe("version --conventional-commits", () => {
   describe("independent", () => {
     const versionBumps = new Map([
       ["package-1", "1.0.1"],
@@ -45,6 +49,25 @@ describe("--conventional-commits", () => {
       ["package-3", "4.0.0"],
       ["package-4", "4.1.0"],
       ["package-5", "5.0.1"],
+      ["package-6", "0.2.0"],
+    ]);
+
+    const premajorVersionBumpsForcePatch = new Map([
+      ["package-1", "0.1.0"],
+      ["package-2", "0.2.1"],
+      ["package-3", "0.3.1"],
+      ["package-4", "1.1.0"],
+      ["package-5", "0.5.1"],
+      ["package-6", "0.1.1"],
+    ]);
+
+    const premajorVersionBumpsDefault = new Map([
+      ["package-1", "0.1.0"],
+      ["package-2", "0.3.0"],
+      ["package-3", "0.4.0"],
+      ["package-4", "1.1.0"],
+      ["package-5", "0.6.0"],
+      ["package-6", "0.2.0"],
     ]);
 
     const prereleaseVersionBumps = new Map([
@@ -53,6 +76,7 @@ describe("--conventional-commits", () => {
       ["package-3", "4.0.0-beta.0"],
       ["package-4", "4.1.0-alpha.0"],
       ["package-5", "5.0.1-alpha.0"],
+      ["package-6", "0.2.0-alpha.0"],
     ]);
 
     it("should use conventional-commits utility to guess version bump and generate CHANGELOG", async () => {
@@ -66,13 +90,18 @@ describe("--conventional-commits", () => {
       expect(changedFiles).toMatchSnapshot();
 
       versionBumps.forEach((version, name) => {
-        expect(recommendVersion).toHaveBeenCalledWith(expect.objectContaining({ name }), "independent", {
-          changelogPreset: undefined,
-          rootPath: cwd,
-          tagPrefix: "v",
-          prereleaseId: undefined,
-          buildMetadata: undefined,
-        });
+        expect(recommendVersion).toHaveBeenCalledWith(
+          expect.objectContaining({ name }),
+          "independent",
+          {
+            changelogPreset: undefined,
+            rootPath: cwd,
+            tagPrefix: "v",
+            prereleaseId: undefined,
+            buildMetadata: undefined,
+          },
+          "default"
+        );
         expect(updateChangelog).toHaveBeenCalledWith(
           expect.objectContaining({ name, version }),
           "independent",
@@ -92,13 +121,18 @@ describe("--conventional-commits", () => {
 
       prereleaseVersionBumps.forEach((version, name) => {
         const prereleaseId = semver.prerelease(version)[0];
-        expect(recommendVersion).toHaveBeenCalledWith(expect.objectContaining({ name }), "independent", {
-          changelogPreset: undefined,
-          rootPath: cwd,
-          tagPrefix: "v",
-          prereleaseId,
-          buildMetadata: undefined,
-        });
+        expect(recommendVersion).toHaveBeenCalledWith(
+          expect.objectContaining({ name }),
+          "independent",
+          {
+            changelogPreset: undefined,
+            rootPath: cwd,
+            tagPrefix: "v",
+            prereleaseId,
+            buildMetadata: undefined,
+          },
+          "default"
+        );
         expect(updateChangelog).toHaveBeenCalledWith(
           expect.objectContaining({ name, version }),
           "independent",
@@ -119,13 +153,18 @@ describe("--conventional-commits", () => {
 
       prereleaseVersionBumps.forEach((version, name) => {
         const prereleaseId = semver.prerelease(version)[0];
-        expect(recommendVersion).toHaveBeenCalledWith(expect.objectContaining({ name }), "independent", {
-          changelogPreset: undefined,
-          rootPath: cwd,
-          tagPrefix: "v",
-          prereleaseId,
-          conventionalBumpPrerelease: true,
-        });
+        expect(recommendVersion).toHaveBeenCalledWith(
+          expect.objectContaining({ name }),
+          "independent",
+          {
+            changelogPreset: undefined,
+            rootPath: cwd,
+            tagPrefix: "v",
+            prereleaseId,
+            conventionalBumpPrerelease: true,
+          },
+          "default"
+        );
         expect(updateChangelog).toHaveBeenCalledWith(
           expect.objectContaining({ name, version }),
           "independent",
@@ -144,13 +183,18 @@ describe("--conventional-commits", () => {
       expect(changedFiles).toMatchSnapshot();
 
       versionBumps.forEach((version, name) => {
-        expect(recommendVersion).toHaveBeenCalledWith(expect.objectContaining({ name }), "independent", {
-          changelogPreset: undefined,
-          rootPath: cwd,
-          tagPrefix: "v",
-          prerelease: undefined,
-          buildMetadata: undefined,
-        });
+        expect(recommendVersion).toHaveBeenCalledWith(
+          expect.objectContaining({ name }),
+          "independent",
+          {
+            changelogPreset: undefined,
+            rootPath: cwd,
+            tagPrefix: "v",
+            prerelease: undefined,
+            buildMetadata: undefined,
+          },
+          "default"
+        );
         expect(updateChangelog).toHaveBeenCalledWith(
           expect.objectContaining({ name, version }),
           "independent",
@@ -171,7 +215,12 @@ describe("--conventional-commits", () => {
 
       await lernaVersion(cwd)("--conventional-commits", "--changelog-preset", "foo-bar");
 
-      expect(recommendVersion).toHaveBeenCalledWith(expect.any(Object), "independent", changelogOpts);
+      expect(recommendVersion).toHaveBeenCalledWith(
+        expect.any(Object),
+        "independent",
+        changelogOpts,
+        "default"
+      );
       expect(updateChangelog).toHaveBeenCalledWith(expect.any(Object), "independent", changelogOpts);
     });
 
@@ -208,11 +257,78 @@ describe("--conventional-commits", () => {
       const changedFiles = await showCommit(cwd, "--name-only");
       expect(changedFiles).toMatchSnapshot();
 
-      expect(recommendVersion).toHaveBeenCalledWith(expect.any(Object), "independent", {
-        ...changelogOpts,
-        buildMetadata,
-      });
+      expect(recommendVersion).toHaveBeenCalledWith(
+        expect.any(Object),
+        "independent",
+        {
+          ...changelogOpts,
+          buildMetadata,
+        },
+        "default"
+      );
       expect(updateChangelog).toHaveBeenCalledWith(expect.any(Object), "independent", changelogOpts);
+    });
+
+    it("should bump premajorVersionBump force-patch as patch", async () => {
+      premajorVersionBumpsForcePatch.forEach((bump) => recommendVersion.mockResolvedValueOnce(bump));
+
+      const cwd = await initFixture("independent-premajor");
+
+      await lernaVersion(cwd)("--conventional-commits", "--premajor-version-bump", "force-patch");
+
+      const changedFiles = await showCommit(cwd, "--name-only");
+      expect(changedFiles).toMatchSnapshot();
+
+      premajorVersionBumpsForcePatch.forEach((version, name) => {
+        expect(recommendVersion).toHaveBeenCalledWith(
+          expect.objectContaining({ name }),
+          "independent",
+          {
+            changelogPreset: undefined,
+            rootPath: cwd,
+            tagPrefix: "v",
+            prereleaseId: undefined,
+            buildMetadata: undefined,
+          },
+          "force-patch"
+        );
+        expect(updateChangelog).toHaveBeenCalledWith(
+          expect.objectContaining({ name, version }),
+          "independent",
+          { changelogPreset: undefined, rootPath: cwd, tagPrefix: "v", prereleaseId: undefined }
+        );
+      });
+    });
+
+    it("should bump premajorVersionBump default as minor", async () => {
+      premajorVersionBumpsDefault.forEach((bump) => recommendVersion.mockResolvedValueOnce(bump));
+
+      const cwd = await initFixture("independent-premajor");
+
+      await lernaVersion(cwd)("--conventional-commits", "--premajor-version-bump", "default");
+
+      const changedFiles = await showCommit(cwd, "--name-only");
+      expect(changedFiles).toMatchSnapshot();
+
+      premajorVersionBumpsDefault.forEach((version, name) => {
+        expect(recommendVersion).toHaveBeenCalledWith(
+          expect.objectContaining({ name }),
+          "independent",
+          {
+            changelogPreset: undefined,
+            rootPath: cwd,
+            tagPrefix: "v",
+            prereleaseId: undefined,
+            buildMetadata: undefined,
+          },
+          "default"
+        );
+        expect(updateChangelog).toHaveBeenCalledWith(
+          expect.objectContaining({ name, version }),
+          "independent",
+          { changelogPreset: undefined, rootPath: cwd, tagPrefix: "v", prereleaseId: undefined }
+        );
+      });
     });
   });
 
@@ -235,13 +351,18 @@ describe("--conventional-commits", () => {
       ["package-1", "package-2", "package-3", "package-4", "package-5"].forEach((name) => {
         const location = path.join(cwd, "packages", name);
 
-        expect(recommendVersion).toHaveBeenCalledWith(expect.objectContaining({ name, location }), "fixed", {
-          changelogPreset: undefined,
-          rootPath: cwd,
-          tagPrefix: "v",
-          prereleaseId: undefined,
-          buildMetadata: undefined,
-        });
+        expect(recommendVersion).toHaveBeenCalledWith(
+          expect.objectContaining({ name, location }),
+          "fixed",
+          {
+            changelogPreset: undefined,
+            rootPath: cwd,
+            tagPrefix: "v",
+            prereleaseId: undefined,
+            buildMetadata: undefined,
+          },
+          "default"
+        );
 
         expect(updateChangelog).toHaveBeenCalledWith(
           expect.objectContaining({ name, version: "2.0.0" }),
@@ -284,13 +405,18 @@ describe("--conventional-commits", () => {
       ["package-1", "package-2", "package-3", "package-4", "package-5"].forEach((name) => {
         const location = path.join(cwd, "packages", name);
 
-        expect(recommendVersion).toHaveBeenCalledWith(expect.objectContaining({ name, location }), "fixed", {
-          changelogPreset: undefined,
-          rootPath: cwd,
-          tagPrefix: "v",
-          prereleaseId: "alpha",
-          buildMetadata: undefined,
-        });
+        expect(recommendVersion).toHaveBeenCalledWith(
+          expect.objectContaining({ name, location }),
+          "fixed",
+          {
+            changelogPreset: undefined,
+            rootPath: cwd,
+            tagPrefix: "v",
+            prereleaseId: "alpha",
+            buildMetadata: undefined,
+          },
+          "default"
+        );
 
         expect(updateChangelog).toHaveBeenCalledWith(
           expect.objectContaining({ name, version: "2.0.0-alpha.0" }),
@@ -332,10 +458,15 @@ describe("--conventional-commits", () => {
         "dragons-are-awesome"
       );
 
-      expect(recommendVersion).toHaveBeenCalledWith(expect.any(Object), "fixed", {
-        ...changelogOpts,
-        buildMetadata: undefined,
-      });
+      expect(recommendVersion).toHaveBeenCalledWith(
+        expect.any(Object),
+        "fixed",
+        {
+          ...changelogOpts,
+          buildMetadata: undefined,
+        },
+        "default"
+      );
       expect(updateChangelog).toHaveBeenCalledWith(expect.any(Object), "fixed", changelogOpts);
     });
 
@@ -399,10 +530,89 @@ describe("--conventional-commits", () => {
     const changedFiles = await showCommit(cwd, "--name-only");
     expect(changedFiles).toMatchSnapshot();
 
-    expect(recommendVersion).toHaveBeenCalledWith(expect.any(Object), "fixed", {
-      ...changelogOpts,
-      buildMetadata,
-    });
+    expect(recommendVersion).toHaveBeenCalledWith(
+      expect.any(Object),
+      "fixed",
+      {
+        ...changelogOpts,
+        buildMetadata,
+      },
+      "default"
+    );
     expect(updateChangelog).toHaveBeenCalledWith(expect.any(Object), "fixed", changelogOpts);
+  });
+
+  it("should bump premajorVersionBump force-patch as patch", async () => {
+    const packages = ["package-1", "package-2", "package-3", "package-4", "package-5"];
+    for (let i = 0; i < packages.length; i++) {
+      recommendVersion.mockResolvedValueOnce("0.1.1");
+    }
+
+    const cwd = await initFixture("normal-premajor");
+
+    await lernaVersion(cwd)("--conventional-commits", "--premajor-version-bump", "force-patch");
+
+    const changedFiles = await showCommit(cwd, "--name-only");
+    expect(changedFiles).toMatchSnapshot();
+
+    packages.forEach((name) => {
+      const location = path.join(cwd, "packages", name);
+
+      expect(recommendVersion).toHaveBeenCalledWith(
+        expect.objectContaining({ name, location }),
+        "fixed",
+        {
+          changelogPreset: undefined,
+          rootPath: cwd,
+          tagPrefix: "v",
+          prereleaseId: undefined,
+          buildMetadata: undefined,
+        },
+        "force-patch"
+      );
+
+      expect(updateChangelog).toHaveBeenCalledWith(
+        expect.objectContaining({ name, version: "0.1.1" }),
+        "fixed",
+        { changelogPreset: undefined, rootPath: cwd, tagPrefix: "v", prereleaseId: undefined }
+      );
+    });
+  });
+
+  it("should bump premajorVersionBump semver as minor", async () => {
+    const packages = ["package-1", "package-2", "package-3", "package-4", "package-5"];
+    for (let i = 0; i < packages.length; i++) {
+      recommendVersion.mockResolvedValueOnce("0.2.0");
+    }
+
+    const cwd = await initFixture("normal-premajor");
+
+    await lernaVersion(cwd)("--conventional-commits", "--premajor-version-bump", "force-patch");
+
+    const changedFiles = await showCommit(cwd, "--name-only");
+    expect(changedFiles).toMatchSnapshot();
+
+    packages.forEach((name) => {
+      const location = path.join(cwd, "packages", name);
+
+      expect(recommendVersion).toHaveBeenCalledWith(
+        expect.objectContaining({ name, location }),
+        "fixed",
+        {
+          changelogPreset: undefined,
+          rootPath: cwd,
+          tagPrefix: "v",
+          prereleaseId: undefined,
+          buildMetadata: undefined,
+        },
+        "force-patch"
+      );
+
+      expect(updateChangelog).toHaveBeenCalledWith(
+        expect.objectContaining({ name, version: "0.2.0" }),
+        "fixed",
+        { changelogPreset: undefined, rootPath: cwd, tagPrefix: "v", prereleaseId: undefined }
+      );
+    });
   });
 });

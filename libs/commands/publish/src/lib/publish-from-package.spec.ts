@@ -12,8 +12,11 @@ import _writePkg from "write-pkg";
 // eslint-disable-next-line jest/no-mocks-import
 jest.mock("write-pkg", () => require("@lerna/test-helpers/__mocks__/write-pkg"));
 
-// eslint-disable-next-line jest/no-mocks-import
-jest.mock("@lerna/core", () => require("@lerna/test-helpers/__mocks__/@lerna/core"));
+jest.mock("@lerna/core", () => ({
+  // eslint-disable-next-line jest/no-mocks-import
+  ...require("@lerna/test-helpers/__mocks__/@lerna/core"),
+  gitCheckout: jest.requireActual("@lerna/core").gitCheckout,
+}));
 
 // lerna publish mocks
 jest.mock("./get-packages-without-license", () => ({
@@ -26,8 +29,8 @@ jest.mock("./get-npm-username", () => ({
   getNpmUsername: jest.fn(() => Promise.resolve("lerna-test")),
 }));
 jest.mock("./get-two-factor-auth-required");
-jest.mock("./get-unpublished-packages", () => ({
-  getUnpublishedPackages: jest.fn(() => Promise.resolve([])),
+jest.mock("./get-projects-with-unpublished-packages", () => ({
+  getProjectsWithUnpublishedPackages: jest.fn(() => Promise.resolve([])),
 }));
 
 // lerna version mocks
@@ -40,16 +43,20 @@ jest.mock("@lerna/commands/version/lib/remote-branch-exists", () => ({
   remoteBranchExists: jest.fn().mockResolvedValue(true),
 }));
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { getUnpublishedPackages } = require("./get-unpublished-packages");
+import { getProjectsWithUnpublishedPackages as _getProjectsWithUnpublishedPackages } from "./get-projects-with-unpublished-packages";
+const getProjectsWithUnpublishedPackages = _getProjectsWithUnpublishedPackages as jest.MockedFunction<
+  typeof _getProjectsWithUnpublishedPackages
+>;
 
 const promptConfirmation = jest.mocked(_promptConfirmation);
 const throwIfUncommitted = jest.mocked(_throwIfUncommitted);
 
 // The mock differs from the real thing
-const npmPublish = _npmPublish as any;
-const writePkg = _writePkg as any;
-const output = _output as any;
+const npmPublish = _npmPublish as jest.MockedFunction<typeof _npmPublish> & { order: () => string[] };
+const writePkg = _writePkg as jest.MockedFunction<typeof _writePkg> & {
+  updatedManifest: (name: string) => { gitHead?: string };
+};
+const output = _output as jest.MockedFunction<typeof _output> & { logged: () => string[] };
 
 const initFixture = initFixtureFactory(__dirname);
 
@@ -61,9 +68,8 @@ describe("publish from-package", () => {
   it("publishes unpublished packages", async () => {
     const cwd = await initFixture("normal");
 
-    getUnpublishedPackages.mockImplementationOnce((packageGraph) => {
-      const pkgs = packageGraph.rawPackageList.slice(1, 3);
-      return pkgs.map((pkg) => packageGraph.get(pkg.name));
+    getProjectsWithUnpublishedPackages.mockImplementationOnce((nodes) => {
+      return Promise.resolve(nodes.slice(1, 3));
     });
 
     await lernaPublish(cwd)("from-package");
@@ -76,13 +82,14 @@ describe("publish from-package", () => {
   it("publishes unpublished independent packages", async () => {
     const cwd = await initFixture("independent");
 
-    getUnpublishedPackages.mockImplementationOnce((packageGraph) => Array.from(packageGraph.values()));
+    getProjectsWithUnpublishedPackages.mockImplementationOnce((nodes) => Promise.resolve(nodes));
 
     await lernaPublish(cwd)("from-package");
 
     expect(npmPublish.order()).toEqual([
       "package-1",
       "package-4",
+      "package-6",
       "package-2",
       "package-3",
       // package-5 is private
@@ -92,7 +99,7 @@ describe("publish from-package", () => {
   it("publishes unpublished independent packages, lexically sorted when --no-sort is present", async () => {
     const cwd = await initFixture("independent");
 
-    getUnpublishedPackages.mockImplementationOnce((packageGraph) => Array.from(packageGraph.values()));
+    getProjectsWithUnpublishedPackages.mockImplementationOnce((nodes) => Promise.resolve(nodes));
 
     await lernaPublish(cwd)("from-package", "--no-sort");
 
@@ -102,7 +109,29 @@ describe("publish from-package", () => {
       "package-3",
       "package-4",
       // package-5 is private
+      "package-6",
     ]);
+  });
+
+  it("logs the name of the package that fails to be published", async () => {
+    const cwd = await initFixture("independent");
+
+    getProjectsWithUnpublishedPackages.mockImplementationOnce((nodes) => Promise.resolve(nodes));
+
+    npmPublish.mockImplementation(async (pkg) => {
+      if (pkg.name === "package-2") {
+        throw new Error("some-error");
+      }
+    });
+
+    try {
+      await lernaPublish(cwd)("from-package");
+    } catch {
+      // ignore error
+    }
+
+    const logMessages = loggingOutput("notice");
+    expect(logMessages).toContain("Package failed to publish: package-2");
   });
 
   it("exits early when all packages are published", async () => {
@@ -129,7 +158,9 @@ describe("publish from-package", () => {
   });
 
   it("does not require a git repo", async () => {
-    getUnpublishedPackages.mockImplementationOnce((packageGraph) => [packageGraph.get("package-1")]);
+    getProjectsWithUnpublishedPackages.mockImplementationOnce((nodes) =>
+      Promise.resolve([nodes.find((node) => node.name === "package-1")])
+    );
 
     const cwd = await initFixture("independent");
 
@@ -149,7 +180,9 @@ describe("publish from-package", () => {
   });
 
   it("accepts --git-head override", async () => {
-    getUnpublishedPackages.mockImplementationOnce((packageGraph) => [packageGraph.get("package-1")]);
+    getProjectsWithUnpublishedPackages.mockImplementationOnce((nodes) =>
+      Promise.resolve([nodes.find((node) => node.name === "package-1")])
+    );
 
     const cwd = await initFixture("independent");
 

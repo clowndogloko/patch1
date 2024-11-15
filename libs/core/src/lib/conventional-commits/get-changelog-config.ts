@@ -1,13 +1,16 @@
 import npa from "npm-package-arg";
-import log from "npmlog";
 import pify from "pify";
+import log from "../npmlog";
 import { ValidationError } from "../validation-error";
 import { ChangelogPresetConfig } from "./constants";
 
 const cfgCache = new Map();
 
 function isFunction(config: any) {
-  return Object.prototype.toString.call(config) === "[object Function]";
+  return (
+    Object.prototype.toString.call(config) === "[object Function]" ||
+    Object.prototype.toString.call(config) === "[object AsyncFunction]"
+  );
 }
 
 function resolveConfigPromise(presetPackageName: string, presetConfig: object) {

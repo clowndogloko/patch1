@@ -1,13 +1,12 @@
-import { readJsonFile, workspaceRoot } from "@nrwl/devkit";
+import { log } from "@lerna/core";
+import { readJsonFile, workspaceRoot } from "@nx/devkit";
+import { ExecOptions } from "child_process";
 import fs from "fs";
-import log from "npmlog";
 import path from "path";
 import slash from "slash";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const childProcess = require("@lerna/child-process");
-
-module.exports.gitAdd = gitAdd;
 
 let resolvedPrettier;
 function resolvePrettier() {
@@ -19,9 +18,8 @@ function resolvePrettier() {
       if (!hasPrettier) {
         return;
       }
-      const prettierPath = path.join(workspaceRoot, "node_modules", "prettier");
       // eslint-disable-next-line import/no-dynamic-require, global-require
-      resolvedPrettier = require(prettierPath);
+      resolvedPrettier = require("prettier");
     } catch {
       return;
     }
@@ -29,16 +27,18 @@ function resolvePrettier() {
   return resolvedPrettier;
 }
 
-function maybeFormatFile(filePath) {
+async function maybeFormatFile(filePath) {
   const prettier = resolvePrettier();
   if (!prettier) {
     return;
   }
-  const config = resolvedPrettier.resolveConfig.sync(filePath);
+  const config = await resolvedPrettier.resolveConfig(filePath);
   const ignorePath = path.join(workspaceRoot, ".prettierignore");
   const fullFilePath = path.join(workspaceRoot, filePath);
 
-  if (resolvedPrettier.getFileInfo.sync(fullFilePath, { ignorePath }).ignored) {
+  const fileInfo = await resolvedPrettier.getFileInfo(fullFilePath, { ignorePath });
+
+  if (fileInfo.ignored) {
     log.silly("version", `Skipped applying prettier to ignored file: ${filePath}`);
     return;
   }
@@ -46,7 +46,7 @@ function maybeFormatFile(filePath) {
     const input = fs.readFileSync(fullFilePath, "utf8");
     fs.writeFileSync(
       fullFilePath,
-      resolvedPrettier.format(input, { ...config, filepath: fullFilePath }),
+      await resolvedPrettier.format(input, { ...config, filepath: fullFilePath }),
       "utf8"
     );
     log.silly("version", `Successfully applied prettier to updated file: ${filePath}`);
@@ -55,16 +55,15 @@ function maybeFormatFile(filePath) {
   }
 }
 
-/**
- * @param {string[]} changedFiles
- * @param {{ granularPathspec: boolean; }} gitOpts
- * @param {import("@lerna/child-process").ExecOpts} execOpts
- */
-function gitAdd(changedFiles, gitOpts, execOpts) {
+export async function gitAdd(
+  changedFiles: string[],
+  gitOpts: { granularPathspec?: boolean },
+  execOpts: ExecOptions
+) {
   let files: string | string[] = [];
   for (const file of changedFiles) {
-    const filePath = slash(path.relative(execOpts.cwd, path.resolve(execOpts.cwd, file)));
-    maybeFormatFile(filePath);
+    const filePath = slash(path.relative(execOpts.cwd as string, path.resolve(execOpts.cwd as string, file)));
+    await maybeFormatFile(filePath);
     if (gitOpts.granularPathspec) {
       files.push(filePath);
     }
