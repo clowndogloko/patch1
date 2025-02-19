@@ -1,14 +1,12 @@
-// eslint-disable-next-line @nrwl/nx/enforce-module-boundaries
+// eslint-disable-next-line @nx/enforce-module-boundaries
 import { tempWrite } from "@lerna/core";
 import cp from "child_process";
 import execa from "execa";
 import loadJsonFile from "load-json-file";
 import os from "os";
 import path from "path";
-import { writeJsonFile } from "@nrwl/devkit";
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const gitSHA = require("../serializers/serialize-git-sha");
+import { writeJsonFile } from "@nx/devkit";
+import { gitSHASerializer } from "../serializers";
 
 // Contains all relevant git config (user, commit.gpgSign, etc)
 const TEMPLATE = path.resolve(__dirname, "template");
@@ -67,7 +65,7 @@ export function showCommit(cwd: string, ...args: any[]) {
       ...args,
     ],
     { cwd }
-  ).then((result) => gitSHA.serialize(result.stdout));
+  ).then((result) => gitSHASerializer.serialize(result.stdout));
 }
 
 export function commitChangeToPackage(cwd: string, packageName: string, commitMsg: any, data: any) {

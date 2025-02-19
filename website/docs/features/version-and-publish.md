@@ -21,7 +21,7 @@ The repo contains three packages or projects:
 We are going to publish the `header` and the `footer` packages.
 
 > It's common to publish only a subset of the projects. Some projects can be private (e.g., used only for tests), some
-> can be demo apps. In this repo, `remixapp` isn't private, it just doesn't get published to NPM.
+> can be demo apps. In this repo, `remixapp` isn't "private" in the sense of not wanting people to see the source files, it is just using the `"private": true` setting in order to not get published to NPM.
 
 ## Versioning
 
@@ -104,17 +104,35 @@ Successfully published:
 lerna success published 2 packages
 ```
 
+### from-package
+
+Another way Lerna can determine which packages to publish is with `from-package`. Lerna will compare the version of every package in the repository with the version of it that is published to npm. For each package that has a version that is greater than the published version, Lerna will publish that package to npm.
+
+This mode does not explicitly require that the packages have been versioned with `lerna version`, which makes it great for workspaces that have their own versioning scripts.
+
+```bash
+lerna publish from-package
+```
+
+:::info
+Lerna _always_ uses `npm` to publish packages. If you use a package manager other than `npm`, you will need to still add the appropriate publishing configuration to `.npmrc`, even if `npmClient` is set to something other than `npm` in `lerna.json`.
+:::
+
 ## Versioning strategies
 
 Lerna allows you to manage your project using one of two modes: Fixed or Independent.
 
 ### Fixed/Locked mode (default)
 
-Fixed mode Lerna projects operate on a single version line. The version is kept in the `lerna.json` file at the root of your project under the `version` key. When you run `lerna publish`, if a module has been updated since the last time a release was made, it will be updated to the new version you're releasing. This means that you only publish a new version of a package when you need to.
+Fixed mode Lerna projects operate on a single version line. The version is kept in the `lerna.json` file at the root of your project under the `version` key. When you run `lerna publish`, if a package has been updated since the last time a release was made, it will be updated to the new version you're releasing. This means that you only publish a new version of a package when you need to.
 
 > Note: If you have a major version zero, all updates are [considered breaking](https://semver.org/#spec-item-4). Because of that, running `lerna publish` with a major version zero and choosing any non-prerelease version number will cause new versions to be published for all packages, even if not all packages have changed since the last release.
 
 Use this if you want to automatically tie all package versions together. One issue with this approach is that a major change in any package will result in all packages having a new major version.
+
+#### Synchronized Versions
+
+Lerna will only version and publish packages that have changed since the previous release, causing package versions to drift apart over time. To prevent this, use the `--force-publish` option with `lerna version`. This will force Lerna to always version all packages, regardless of if they have changed since the previous release. Then they will all be published to the registry by `lerna publish from-git`. As a result, all package versions will stay synchronized to the version in `lerna.json`.
 
 ### Independent mode
 

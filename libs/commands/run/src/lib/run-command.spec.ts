@@ -1,4 +1,5 @@
 import {
+  Package,
   npmRunScript as _npmRunScript,
   npmRunScriptStreaming as _npmRunScriptStreaming,
   output as _output,
@@ -6,7 +7,7 @@ import {
 import { commandRunner, initFixtureFactory, loggingOutput, normalizeRelativeDir } from "@lerna/test-helpers";
 import fs from "fs-extra";
 import globby from "globby";
-import { afterAll, afterEach } from "jest-circus";
+import { afterEach } from "jest-circus";
 
 const initFixture = initFixtureFactory(__dirname);
 
@@ -18,21 +19,35 @@ const lernaRun = commandRunner(require("../command"));
 jest.mock("@lerna/core", () => require("@lerna/test-helpers/__mocks__/@lerna/core"));
 
 // The mock modifies the exported symbols and therefore types
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const output = _output as any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const npmRunScript = _npmRunScript as any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const npmRunScriptStreaming = _npmRunScriptStreaming as any;
 
 // assertion helpers
-const ranInPackagesStreaming = (testDir) =>
-  npmRunScriptStreaming.mock.calls.reduce((arr, [script, { args, npmClient, pkg, prefix }]) => {
-    const dir = normalizeRelativeDir(testDir, pkg.location);
-    const record = [dir, npmClient, "run", script, `(prefixed: ${prefix})`].concat(args);
-    arr.push(record.join(" "));
-    return arr;
-  }, []);
+const ranInPackagesStreaming = (testDir: string) =>
+  npmRunScriptStreaming.mock.calls.reduce(
+    (
+      arr: string[],
+      [script, { args, npmClient, pkg, prefix }]: [
+        string,
+        { args: string[]; npmClient: string; pkg: Package; prefix: string }
+      ]
+    ) => {
+      const dir = normalizeRelativeDir(testDir, pkg.location);
+      const record = [dir, npmClient, "run", script, `(prefixed: ${prefix})`].concat(args);
+      arr.push(record.join(" "));
+      return arr;
+    },
+    []
+  );
 
 describe("RunCommand", () => {
-  npmRunScript.mockImplementation((script, { pkg }) => Promise.resolve({ exitCode: 0, stdout: pkg.name }));
+  npmRunScript.mockImplementation((script: string, { pkg }: { pkg: Package }) =>
+    Promise.resolve({ exitCode: 0, stdout: pkg.name })
+  );
   npmRunScriptStreaming.mockImplementation(() => Promise.resolve({ exitCode: 0 }));
 
   afterEach(() => {
@@ -41,7 +56,7 @@ describe("RunCommand", () => {
 
   describe("in a basic repo", () => {
     // working dir is never mutated
-    let testDir;
+    let testDir: string;
 
     beforeAll(async () => {
       testDir = await initFixture("basic");
@@ -126,7 +141,8 @@ describe("RunCommand", () => {
     });
 
     it("reports script errors with early exit", async () => {
-      npmRunScript.mockImplementationOnce((script, { pkg }) => {
+      npmRunScript.mockImplementationOnce((_script: string, { pkg }: { pkg: Package }) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const err = new Error(pkg.name) as any;
 
         err.failed = true;
@@ -142,7 +158,8 @@ describe("RunCommand", () => {
     });
 
     it("propagates non-zero exit codes with --no-bail", async () => {
-      npmRunScript.mockImplementationOnce((script, { pkg }) => {
+      npmRunScript.mockImplementationOnce((_script: string, { pkg }: { pkg: Package }) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const err = new Error(pkg.name) as any;
 
         err.failed = true;
@@ -287,9 +304,9 @@ describe("RunCommand", () => {
       const [logMessage] = loggingOutput("warn");
       expect(logMessage).toMatch("Dependency cycles detected, you should fix these!");
       expect(logMessage).toMatch("b -> c -> d -> e -> b");
-      expect(logMessage).toMatch("f -> g -> (nested cycle: b -> c -> d -> e -> b) -> f");
+      expect(logMessage).toMatch("b -> c -> f -> g -> b");
 
-      expect(output.logged().split("\n")).toEqual(["f", "b", "e", "d", "c", "g", "a"]);
+      expect(output.logged().split("\n")).toEqual(["b", "c", "d", "e", "f", "g", "a"]);
     });
 
     it("works with separate cycles", async () => {
@@ -300,9 +317,9 @@ describe("RunCommand", () => {
       const [logMessage] = loggingOutput("warn");
       expect(logMessage).toMatch("Dependency cycles detected, you should fix these!");
       expect(logMessage).toMatch("b -> c -> d -> b");
-      expect(logMessage).toMatch("e -> f -> g -> e");
+      expect(logMessage).toMatch("g -> e -> f -> g");
 
-      expect(output.logged().split("\n")).toEqual(["e", "g", "f", "h", "b", "d", "c", "a"]);
+      expect(output.logged().split("\n")).toEqual(["g", "e", "f", "b", "c", "d", "h", "a"]);
     });
 
     it("should throw an error with --reject-cycles", async () => {

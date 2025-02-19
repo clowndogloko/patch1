@@ -2,7 +2,8 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 
-import { Command, npmConf, ValidationError } from "@lerna/core";
+import { npmConf, ValidationError } from "@lerna/core";
+import { Command } from "@lerna/legacy-core";
 import dedent from "dedent";
 import fs from "fs-extra";
 import npa from "npm-package-arg";
@@ -13,12 +14,10 @@ import path from "path";
 import slash from "slash";
 import { URL } from "url";
 import { camelCase } from "yargs-parser";
+import { execSync } from "@lerna/child-process";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const childProcess = require("@lerna/child-process");
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const initPackageJson = require("pify")(require("init-package-json"));
+const initPackageJson = require("init-package-json");
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { builtinNpmrc } = require("./lib/builtin-npmrc");
@@ -60,7 +59,7 @@ class CreateCommand extends Command {
     if (!name && pkgName.includes("/")) {
       throw new ValidationError(
         "ENOPKGNAME",
-        "Invalid package name. Use the <loc> positional to specify package directory.\nSee https://github.com/lerna/lerna/tree/main/commands/create#usage for details."
+        "Invalid package name. Use the <loc> positional to specify package directory.\nSee https://github.com/lerna/lerna/tree/main/libs/commands/create#usage for details."
       );
     }
 
@@ -133,7 +132,6 @@ class CreateCommand extends Command {
       this.conf.set("silent", true);
     }
 
-    // save read-package-json the trouble
     if (this.binFileName) {
       this.conf.set("bin", {
         [this.binFileName]: `bin/${this.binFileName}`,
@@ -180,40 +178,35 @@ class CreateCommand extends Command {
     );
   }
 
-  execute() {
-    let chain = Promise.resolve();
-
-    chain = chain.then(() => fs.mkdirp(this.libDir));
-    chain = chain.then(() => fs.mkdirp(this.testDir));
-    chain = chain.then(() => Promise.all([this.writeReadme(), this.writeLibFile(), this.writeTestFile()]));
+  async execute() {
+    await fs.mkdirp(this.libDir);
+    await fs.mkdirp(this.testDir);
+    await Promise.all([this.writeReadme(), this.writeLibFile(), this.writeTestFile()]);
 
     if (this.binFileName) {
-      chain = chain.then(() => fs.mkdirp(this.binDir));
-      chain = chain.then(() => Promise.all([this.writeBinFile(), this.writeCliFile(), this.writeCliTest()]));
+      await fs.mkdirp(this.binDir);
+      await Promise.all([this.writeBinFile(), this.writeCliFile(), this.writeCliTest()]);
     }
 
-    chain = chain.then(() => initPackageJson(this.targetDir, LERNA_MODULE_DATA, this.conf));
+    const data = await initPackageJson(this.targetDir, LERNA_MODULE_DATA, this.conf);
 
-    return chain.then((data) => {
-      if (this.options.esModule) {
-        this.logger.notice(
-          "✔",
-          dedent`
+    if (this.options.esModule) {
+      this.logger.notice(
+        "✔",
+        dedent`
               Ensure '${path.relative(".", this.pkgsDir)}/*/${this.outDir}' has been added to ./.gitignore
               Ensure rollup or babel build scripts are in the root
             `
-        );
-      }
-
-      this.logger.success(
-        "create",
-        `New package ${data.name} created at ./${path.relative(".", this.targetDir)}`
       );
-    });
+    }
+    this.logger.success(
+      "create",
+      `New package ${data.name} created at ./${path.relative(".", this.targetDir)}`
+    );
   }
 
   gitConfig(prop) {
-    return childProcess.execSync("git", ["config", "--get", prop], this.execOpts);
+    return execSync("git", ["config", "--get", prop], this.execOpts);
   }
 
   collectExternalVersions() {
@@ -280,10 +273,12 @@ class CreateCommand extends Command {
         return `${savePrefix}${depNode.version}`;
       }
 
-      if (spec.type === "tag" && spec.fetchSpec === "latest") {
-        // resolve the latest version
+      if (
+        (spec.type === "tag" && spec.fetchSpec === "latest") ||
+        (spec.type === "range" && spec.fetchSpec === "*")
+      ) {
+        // resolve the latest version from local external dependency
         if (exts.has(spec.name)) {
-          // from local external dependency
           return exts.get(spec.name);
         }
 
@@ -374,6 +369,8 @@ class CreateCommand extends Command {
     const isPublicRegistry = registry === this.conf.root.registry;
     const publishConfig = {};
 
+    // TODO: in the version of libnpmpublish that we now use, public is the default for scoped packages
+    // so we can avoid generating the unnecessary publishConfig in that case: https://github.com/npm/cli/commit/525654e957a80c7f47472e18240e3c8d94e0568f
     if (scope && isPublicRegistry) {
       publishConfig.access = this.options.access || "public";
     }
@@ -393,7 +390,7 @@ class CreateCommand extends Command {
 
   setRepository() {
     try {
-      const url = childProcess.execSync("git", ["remote", "get-url", "origin"], this.execOpts);
+      const url = execSync("git", ["remote", "get-url", "origin"], this.execOpts);
 
       this.conf.set("repository", url);
     } catch (err) {

@@ -1,6 +1,6 @@
 import conventionalRecommendedBump from "conventional-recommended-bump";
-import log from "npmlog";
 import semver from "semver";
+import log from "../npmlog";
 import { Package } from "../package";
 import { applyBuildMetadata } from "./apply-build-metadata";
 import { BaseChangelogOptions, VersioningStrategy } from "./constants";
@@ -16,8 +16,9 @@ export function recommendVersion(
     prereleaseId,
     conventionalBumpPrerelease,
     buildMetadata,
-  }: BaseChangelogOptions & { prereleaseId?: string; buildMetadata?: string }
-) {
+  }: BaseChangelogOptions & { prereleaseId?: string; buildMetadata?: string },
+  premajorVersionBump: "default" | "force-patch"
+): Promise<string> {
   log.silly(type, "for %s at %s", pkg.name, pkg.location);
 
   const options: { lernaPackage?: string; tagPrefix?: string; path?: string; config?: any } = {
@@ -88,8 +89,15 @@ export function recommendVersion(
             // breaking changes. This matches the behavior of `^` operator
             // as implemented by `npm`.
             //
+            // In node-semver, it is however also documented that
+            // "Many authors treat a 0.x version as if the x were the major "breaking-change" indicator."
+            // and all other features or bug fixes as semver-patch bumps
+            // this can be enabled in lerna through `premajorVersionBump = "force-patch"`
+
             if (releaseType === "major") {
               releaseType = "minor";
+            } else if (premajorVersionBump === "force-patch") {
+              releaseType = "patch";
             }
           }
           log.verbose(type, "increment %s by %s", pkg.version, releaseType);
@@ -102,5 +110,7 @@ export function recommendVersion(
     });
   });
 
-  return chain;
+  // TODO: refactor to address type issues
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return chain as any;
 }

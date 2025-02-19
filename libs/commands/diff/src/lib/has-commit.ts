@@ -1,19 +1,13 @@
-import log from "npmlog";
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const childProcess = require("@lerna/child-process");
-
-module.exports.hasCommit = hasCommit;
-
+import * as childProcess from "@lerna/child-process";
+import { ExecOptions, log } from "@lerna/core";
 /**
- * @param {import("@lerna/child-process").ExecOpts} opts
+ *
+ * @param opts
+ * @returns
  */
-function hasCommit(opts) {
-  // TODO: refactor to address type issues
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  log.silly("hasCommit");
-  let retVal;
+export function hasCommit(opts?: ExecOptions) {
+  log.silly("hasCommit", "");
+  let retVal: boolean;
 
   try {
     childProcess.execSync("git", ["log"], opts);
@@ -22,6 +16,6 @@ function hasCommit(opts) {
     retVal = false;
   }
 
-  log.verbose("hasCommit", retVal);
+  log.verbose("hasCommit", retVal.toString());
   return retVal;
 }

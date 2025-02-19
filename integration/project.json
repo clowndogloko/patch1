@@ -2,23 +2,19 @@
   "name": "integration",
   "$schema": "../node_modules/nx/schemas/project-schema.json",
   "projectType": "library",
-  "implicitDependencies": ["lerna", "legacy-structure-commands-*"],
+  "tags": [],
+  "implicitDependencies": ["lerna", "legacy-package-management", "legacy-structure-commands-create"],
   "targets": {
     "lint": {
-      "executor": "@nrwl/linter:eslint",
-      "outputs": ["{options.outputFile}"],
-      "options": {
-        "lintFilePatterns": ["integration/**/*.ts"]
-      }
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"]
     },
     "integration": {
-      "executor": "@nrwl/jest:jest",
+      "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "jestConfig": "integration/jest.config.ts",
-        "passWithNoTests": true
+        "jestConfig": "integration/jest.config.ts"
       }
     }
-  },
-  "tags": []
+  }
 }

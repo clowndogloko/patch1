@@ -14,25 +14,29 @@ lerna publish from-package # explicitly publish packages where the latest versio
 
 When run, this command does one of the following things:
 
-- Publish packages updated since the last release (calling [`lerna version`](https://github.com/lerna/lerna/tree/main/commands/version#readme) behind the scenes).
+- Publish packages updated since the last release (calling [`lerna version`](https://github.com/lerna/lerna/tree/main/libs/commands/version#readme) behind the scenes).
   - This is the legacy behavior of lerna 2.x
 - Publish packages tagged in the current commit (`from-git`).
 - Publish packages in the latest commit where the version is not present in the registry (`from-package`).
 - Publish an unversioned "canary" release of packages (and their dependents) updated in the previous commit.
 
-> Lerna will not publish packages which are marked as private (`"private": true` in the `package.json`). This is consistent with the behavior of `npm publish`. See the [package.json docs](https://docs.npmjs.com/cli/v9/configuring-npm/package-json#private) for more information. To override this behavior, see the [`--include-private` option](#--include-private).
-
 During all publish operations, appropriate [lifecycle scripts](#lifecycle-scripts) are called in the root and per-package (unless disabled by [`--ignore-scripts](#--ignore-scripts)).
 
 Check out [Per-Package Configuration](#per-package-configuration) for more details about publishing scoped packages, custom registries, and custom dist-tags.
 
-> Note: See the [FAQ](https://lerna.js.org/docs/faq#how-do-i-retry-publishing-if-publish-fails) for information on how to recover from a failed publish.
+See the [FAQ](https://lerna.js.org/docs/faq#how-do-i-retry-publishing-if-publish-fails) for information on how to recover from a failed publish.
+
+## Important Notes
+
+- Lerna will not publish packages which are marked as private (`"private": true` in the `package.json`). This is consistent with the behavior of `npm publish`. See the [package.json docs](https://docs.npmjs.com/cli/v9/configuring-npm/package-json#private) for more information. To override this behavior, see the [`--include-private` option](#--include-private).
+
+- Lerna _always_ uses `npm` to publish packages. If you use a package manager other than `npm`, you will need to still add the appropriate publishing configuration to `.npmrc`, even if `npmClient` is set to something other than `npm` in `lerna.json`.
 
 ## Positionals
 
 ### bump `from-git`
 
-In addition to the semver keywords supported by [`lerna version`](https://github.com/lerna/lerna/tree/main/commands/version#positionals),
+In addition to the semver keywords supported by [`lerna version`](https://github.com/lerna/lerna/tree/main/libs/commands/version#positionals),
 `lerna publish` also supports the `from-git` keyword.
 This will identify packages tagged by `lerna version` and publish them to npm.
 This is useful in CI scenarios where you wish to manually increment versions,
@@ -47,13 +51,12 @@ This is useful when a previous `lerna publish` failed to publish all packages to
 
 ## Options
 
-`lerna publish` supports all of the options provided by [`lerna version`](https://github.com/lerna/lerna/tree/main/commands/version#options) in addition to the following:
+`lerna publish` supports all of the options provided by [`lerna version`](https://github.com/lerna/lerna/tree/main/libs/commands/version#options) in addition to the following:
 
 - [`--canary`](#--canary)
 - [`--contents <dir>`](#--contents-dir)
 - [`--dist-tag <tag>`](#--dist-tag-tag)
 - [`--git-head <sha>`](#--git-head-sha)
-- [`--graph-type <all|dependencies>`](#--graph-type-alldependencies)
 - [`--ignore-scripts`](#--ignore-scripts)
 - [`--ignore-prepublish`](#--ignore-prepublish)
 - [`--include-private`](#--include-private)
@@ -67,6 +70,7 @@ This is useful when a previous `lerna publish` failed to publish all packages to
 - [`--registry <url>`](#--registry-url)
 - [`--tag-version-prefix`](#--tag-version-prefix)
 - [`--temp-tag`](#--temp-tag)
+- [`--throttle`](#--throttle)
 - [`--yes`](#--yes)
 - [`--summary-file <dir>`](#--summary-file)
 
@@ -102,7 +106,7 @@ Subdirectory to publish. Must apply to ALL packages, and MUST contain a package.
 Package lifecycles will still be run in the original leaf directory.
 You should probably use one of those lifecycles (`prepare`, `prepublishOnly`, or `prepack`) to _create_ the subdirectory and whatnot.
 
-If you're into unnecessarily complicated publishing, this will give you joy.
+See [Configuring Published Files](https://lerna.js.org/docs/concepts/configuring-published-files) for more information on configuring files to publish to npm.
 
 ```sh
 lerna publish --contents dist
@@ -145,28 +149,6 @@ lerna publish from-package --git-head ${CODEBUILD_RESOLVED_SOURCE_VERSION}
 ```
 
 Under all other circumstances, this value is derived from a local `git` command.
-
-### `--graph-type <all|dependencies>`
-
-Set which kind of dependencies to use when building a package graph. The default value is `dependencies`, whereby only packages listed in the `dependencies` section of a package's `package.json` are included. Pass `all` to include both `dependencies` _and_ `devDependencies` when constructing the package graph and determining topological order.
-
-When using traditional peer + dev dependency pairs, this option should be configured to `all` so the peers are always published before their dependents.
-
-```sh
-lerna publish --graph-type all
-```
-
-Configured via `lerna.json`:
-
-```json
-{
-  "command": {
-    "publish": {
-      "graphType": "all"
-    }
-  }
-}
-```
 
 ### `--ignore-scripts`
 
@@ -232,7 +214,7 @@ This option makes the most sense configured in lerna.json, as you really don't w
 }
 ```
 
-The root-level configuration is intentional, as this also covers the [identically-named option in `lerna version`](https://github.com/lerna/lerna/tree/main/commands/version#--no-granular-pathspec).
+The root-level configuration is intentional, as this also covers the [identically-named option in `lerna version`](https://github.com/lerna/lerna/tree/main/libs/commands/version#--no-granular-pathspec).
 
 ### `--verify-access`
 
@@ -270,7 +252,7 @@ lerna publish --canary --preid next
 ```
 
 When run with this flag, `lerna publish --canary` will increment `premajor`, `preminor`, `prepatch`, or `prerelease` semver
-bumps using the specified [prerelease identifier](http://semver.org/#spec-item-9).
+bumps using the specified [prerelease identifier](http://semver.org/#spec-item-9). The appended numeric modifier (i.e. `.0`) represents the number of commits since the beginning of the repository until the current one. This means amended commits, rebased commits and so on may produce the same appended number as a previously released version, even when the shas or commits themselves differ.
 
 ### `--pre-dist-tag <tag>`
 
@@ -321,6 +303,20 @@ new version(s) to the dist-tag configured by [`--dist-tag`](#--dist-tag-tag) (de
 This is not generally necessary, as Lerna will publish packages in topological
 order (all dependencies before dependents) by default.
 
+### `--throttle`
+
+This option class allows to throttle the timing at which modules are published to the configured registry.
+
+- `--throttle`: Enable throttling when publishing modules
+- `--throttle-size`: The amount of modules that may be published at once (defaults to `25`)
+- `--throttle-delay`: How long to wait after a module was successfully published (defaults to 30 seconds)
+
+This is usefull to avoid errors/retries when publishing to rate-limited repositories on huge monorepos:
+
+```bash
+lerna publish from-git --throttle --throttle-delay=$((3600*24))
+```
+
 ### `--yes`
 
 ```sh
@@ -338,7 +334,8 @@ Useful in [Continuous integration (CI)](https://en.wikipedia.org/wiki/Continuous
 lerna publish --canary --yes --summary-file
 # Will create a summary file in the provided directory, i.e. `./some/other/dir/lerna-publish-summary.json`
 lerna publish --canary --yes --summary-file ./some/other/dir
-
+# Will create a summary file with the provided name, i.e. `./some/other/dir/my-summary.json`
+lerna publish --canary --yes --summary-file ./some/other/dir/my-summary.json
 ```
 
 When run with this flag, a json summary report will be generated after all packages have been successfully published (see below for an example).
@@ -364,7 +361,7 @@ The legacy preemptive access verification is now off by default, so `--no-verify
 
 ### `--skip-npm`
 
-Call [`lerna version`](https://github.com/lerna/lerna/tree/main/commands/version#readme) directly, instead.
+Call [`lerna version`](https://github.com/lerna/lerna/tree/main/libs/commands/version#readme) directly, instead.
 
 ## Per-Package Configuration
 
@@ -436,7 +433,7 @@ This _non-standard_ field allows you to customize the published subdirectory jus
 
 Lerna will run [npm lifecycle scripts](https://docs.npmjs.com/misc/scripts#description) during `lerna publish` in the following order:
 
-1. If versioning implicitly, run all [version lifecycle scripts](https://github.com/lerna/lerna/tree/main/commands/version#lifecycle-scripts)
+1. If versioning implicitly, run all [version lifecycle scripts](https://github.com/lerna/lerna/tree/main/libs/commands/version#lifecycle-scripts)
 2. Run `prepublish` lifecycle in root, if [enabled](#--ignore-prepublish)
 3. Run `prepare` lifecycle in root
 4. Run `prepublishOnly` lifecycle in root

@@ -53,8 +53,10 @@ Running `lerna version --conventional-commits` without the above flags will rele
     - [`--amend`](#--amend)
     - [`--build-metadata <buildMetadata>`](#--build-metadata)
     - [`--changelog-preset`](#--changelog-preset)
+    - [`--changelog-entry-additional-markdown`](#--changelog-entry-additional-markdown)
     - [`--conventional-commits`](#--conventional-commits)
     - [`--conventional-graduate`](#--conventional-graduate)
+    - [`--force-conventional-graduate`](#--force-conventional-graduate)
     - [`--conventional-prerelease`](#--conventional-prerelease)
     - [`--conventional-bump-prerelease`](#--conventional-bump-prerelease)
     - [`--create-release <type>`](#--create-release-type)
@@ -65,6 +67,7 @@ Running `lerna version --conventional-commits` without the above flags will rele
     - [`--ignore-changes`](#--ignore-changes)
     - [`--ignore-scripts`](#--ignore-scripts)
     - [`--include-merged-tags`](#--include-merged-tags)
+    - [`--json`](#--json)
     - [`--message <msg>`](#--message-msg)
     - [`--no-changelog`](#--no-changelog)
     - [`--no-commit-hooks`](#--no-commit-hooks)
@@ -74,9 +77,12 @@ Running `lerna version --conventional-commits` without the above flags will rele
     - [`--no-push`](#--no-push)
     - [`--npm-client-args`](#--npm-client-args)
     - [`--preid`](#--preid)
+    - [`--premajor-version-bump`](#--premajor-version-bump)
+    - [`--run-scripts-on-lockfile-update`](#--run-scripts-on-lockfile-update)
     - [`--signoff-git-commit`](#--signoff-git-commit)
     - [`--sign-git-commit`](#--sign-git-commit)
     - [`--sign-git-tag`](#--sign-git-tag)
+    - [`--sync-dist-version`](#--sync-dist-version)
     - [`--force-git-tag`](#--force-git-tag)
     - [`--tag-version-prefix`](#--tag-version-prefix)
     - [`--yes`](#--yes)
@@ -178,6 +184,26 @@ If the preset exports a builder function (e.g. `conventional-changelog-conventio
 }
 ```
 
+### `--changelog-entry-additional-markdown`
+
+```sh
+lerna version --conventional-commits --changelog-entry-additional-markdown "### Some title\n\nSome *paragraph*"
+```
+
+This option allows you to optionally append additional markdown contents to the new changelog entry for the current release, for example if you want to add additional documentation, or link off to a reference site or video.
+
+If your text is static, and does not change from release to release, you could choose to set it in your `lerna.json`.
+
+```json
+{
+  "command": {
+    "version": {
+      "changelogEntryAdditionalMarkdown": "### Some title\n\nSome *paragraph*"
+    }
+  }
+}
+```
+
 ### `--conventional-commits`
 
 ```sh
@@ -202,6 +228,17 @@ When run with this flag, `lerna version` will graduate the specified packages (c
 "Graduating" a package means bumping to the non-prerelease variant of a prerelease version, eg. `package-1@1.0.0-alpha.0 => package-1@1.0.0`.
 
 > NOTE: when specifying packages, dependents of specified packages will be released, but will not be graduated.
+
+### `--force-conventional-graduate`
+
+```sh
+lerna version --conventional-commits --conventional-graduate=package-2,package-4 --force-conventional-graduate
+
+# force all prerelease packages to be graduated and updated if not a prerelease or having no change
+lerna version --conventional-commits --conventional-graduate --force-conventional-graduate
+```
+
+When run with this flag, `lerna version` will graduate all packages specified by `--conventional-graduate`. Non-prerelease packages will not be ignored as it would be the case without the flag. In combination with single version mode this can be used to force all specified packages to be updated to a single version despite having no change or being a non-prerelease version. It works similar to `--force-publish` but is not ignored when `--conventional-commits` and `--conventional-graduate` are enabled. This flag is only applicable when having `--conventional-graduate` set, otherwise the option is ignored.
 
 ### `--conventional-prerelease`
 
@@ -273,6 +310,7 @@ lerna version --force-publish
 When run with this flag, `lerna version` will force publish the specified packages (comma-separated) or all packages using `*`.
 
 > This will skip the `lerna changed` check for changed packages and forces a package that didn't have a `git diff` change to be updated.
+> NOTE: When used in combination with `--conventional-commits` and `--conventional-graduate` this option will be ignored.
 
 ### `--git-tag-command <cmd>`
 
@@ -336,6 +374,40 @@ lerna version --include-merged-tags
 ```
 
 Include tags from merged branches when detecting changed packages.
+
+### `--json`
+
+```sh
+lerna version --json
+```
+
+Outputs updated packages in json format. Here an example of the output:
+
+```json
+[
+  {
+    "name": "footer",
+    "version": "0.0.4",
+    "private": false,
+    "location": "/home/ammo/git/lerna-getting-started-example/packages/footer",
+    "newVersion": "0.0.5"
+  },
+  {
+    "name": "header",
+    "version": "0.0.4",
+    "private": false,
+    "location": "/home/ammo/git/lerna-getting-started-example/packages/header",
+    "newVersion": "0.0.5"
+  },
+  {
+    "name": "remixapp",
+    "version": "0.0.4",
+    "private": true,
+    "location": "/home/ammo/git/lerna-getting-started-example/packages/remixapp",
+    "newVersion": "0.0.5"
+  }
+]
+```
 
 ### `--message <msg>`
 
@@ -415,7 +487,7 @@ This option makes the most sense configured in lerna.json, as you really don't w
 }
 ```
 
-The root-level configuration is intentional, as this also covers the [identically-named option in `lerna publish`](https://github.com/lerna/lerna/tree/main/commands/publish#--no-granular-pathspec).
+The root-level configuration is intentional, as this also covers the [identically-named option in `lerna publish`](https://github.com/lerna/lerna/tree/main/libs/commands/publish#--no-granular-pathspec).
 
 ### `--no-private`
 
@@ -480,6 +552,32 @@ lerna version prepatch --preid next
 When run with this flag, `lerna version` will increment `premajor`, `preminor`, `prepatch`, or `prerelease` semver
 bumps using the specified [prerelease identifier](http://semver.org/#spec-item-9).
 
+### `--premajor-version-bump`
+
+This option allows you to control how lerna handles bumping versions for packages with a
+`premajor` version (packages that have not had a major release, e.g. `"version": "0.2.4"`)
+when non-breaking changes are detected.
+Breaking changes in `premajor` packages will always trigger a `minor` bump.
+
+```sh
+lerna version --conventional-commits
+# OR
+lerna version --conventional-commits --premajor-version-bump default
+# all non-breaking changes trigger a bump based on the configured conventional commits preset
+# for the default preset, a non-breaking feat would be a minor bump
+# 0.1.0 --> 0.2.0
+
+lerna version --conventional-commits --premajor-version-bump force-patch
+# ensures that all non-breaking premajor version bumps are handled as patches
+# in this case, a non-breaking feat would always be a patch bump
+# 0.1.0 --> 0.1.1
+```
+
+### `--run-scripts-on-lockfile-update`
+
+By default, `lerna version` skips any lifecycle script when syncing the package-lock file after the version bump.
+With this option it will run `prepare`, `postinstall`, etc.
+
 ### `--signoff-git-commit`
 
 Adds the `--signoff` flag to the git commit done by lerna version when executed.
@@ -493,6 +591,10 @@ This option is analogous to the `npm version` [option](https://docs.npmjs.com/mi
 ### `--sign-git-tag`
 
 This option is analogous to the `npm version` [option](https://docs.npmjs.com/misc/config#sign-git-tag) of the same name.
+
+### `--sync-dist-version`
+
+Updates the version of the `package.json` of the contents directory.
 
 ### `--force-git-tag`
 
@@ -541,7 +643,7 @@ Use [`--no-git-tag-version`](#--no-git-tag-version) and [`--no-push`](#--no-push
 
 ### Generating Initial Changelogs
 
-If you start using the [`--conventional-commits`](#--conventional-commits) option _after_ the monorepo has been active for awhile, you can still generate changelogs for previous releases using [`conventional-changelog-cli`](https://github.com/conventional-changelog/conventional-changelog/tree/master/packages/conventional-changelog-cli#readme) and [`lerna exec`](https://github.com/lerna/lerna/tree/main/commands/exec#readme):
+If you start using the [`--conventional-commits`](#--conventional-commits) option _after_ the monorepo has been active for awhile, you can still generate changelogs for previous releases using [`conventional-changelog-cli`](https://github.com/conventional-changelog/conventional-changelog/tree/master/packages/conventional-changelog-cli#readme) and [`lerna exec`](https://github.com/lerna/lerna/tree/main/libs/commands/exec#readme):
 
 ```bash
 # Lerna does not actually use conventional-changelog-cli, so you need to install it temporarily

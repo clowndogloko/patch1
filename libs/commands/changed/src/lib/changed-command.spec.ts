@@ -1,5 +1,11 @@
-import { output as _output, collectUpdates as _collectUpdates } from "@lerna/core";
-import { initFixtureFactory, commandRunner, updateLernaConfig, loggingOutput } from "@lerna/test-helpers";
+import { collectProjectUpdates as _collectUpdates, output as _output } from "@lerna/core";
+import {
+  initFixtureFactory,
+  commandRunner,
+  updateLernaConfig,
+  loggingOutput,
+  tempDirSerializer,
+} from "@lerna/test-helpers";
 
 const initFixture = initFixtureFactory(__dirname);
 
@@ -26,11 +32,10 @@ expect.addSnapshotSerializer({
 });
 
 // normalize temp directory paths in snapshots
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-expect.addSnapshotSerializer(require("@lerna/test-helpers/src/lib/serializers/serialize-tempdir"));
+expect.addSnapshotSerializer(tempDirSerializer);
 
 describe("ChangedCommand", () => {
-  let cwd;
+  let cwd = "";
 
   beforeAll(async () => {
     cwd = await initFixture("normal");

@@ -1,10 +1,13 @@
-// eslint-disable-next-line import/no-extraneous-dependencies, node/no-unpublished-require
-const nxPreset = require("@nrwl/jest/preset").default;
+/* eslint-disable */
+const nxPreset = require("@nx/jest/preset").default;
+const { workspaceRoot } = require("@nx/devkit");
+const { join } = require("node:path");
+/* eslint-enable */
 
 module.exports = {
   ...nxPreset,
   clearMocks: true,
-  modulePathIgnorePatterns: ["/__fixtures__/"],
+  modulePathIgnorePatterns: ["/__fixtures__/", "<rootDir>/dist/"],
   testEnvironment: "node",
   /* TODO: Update to latest Jest snapshotFormat
    * By default Nx has kept the older style of Jest Snapshot formats
@@ -16,4 +19,5 @@ module.exports = {
    * More info: https://jestjs.io/docs/upgrading-to-jest29#snapshot-format
    */
   snapshotFormat: { escapeString: true, printBasicPrototype: true },
+  globalSetup: join(workspaceRoot, "jest-global-setup.js"),
 };

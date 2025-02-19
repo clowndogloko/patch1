@@ -13,17 +13,53 @@ runs:
   using: "composite"
   steps:
     - name: Install node and npm based on the given values (or the volta config in package.json)
-      uses: volta-cli/action@v4
+      uses: actions/setup-node@v4
       with:
+        node-version-file: ${{ inputs.node-version == '' && 'package.json' || '' }}
         node-version: ${{ inputs.node-version }}
+      # The volta action seems to failing to install/unpack a lot recently https://github.com/volta-cli/action/issues/77#issuecomment-1481045178
+      # uses: volta-cli/action@v4
+      # with:
+      #   node-version: ${{ inputs.node-version }}
 
     # Github actions/cache now recommends _not_ caching node_modules when using npm ci
     # https://github.com/actions/cache/blob/940f3d7cf195ba83374c77632d1e2cbb2f24ae68/examples.md#node---npm
 
+    - name: Enable corepack
+      run: corepack enable
+      shell: bash
+      env:
+        COREPACK_ENABLE_AUTO_PIN: "0"
+        COREPACK_ENABLE_STRICT: "0"
+
+    - name: Install pnpm v8
+      run: corepack install -g pnpm@8
+      shell: bash
+      env:
+        COREPACK_ENABLE_AUTO_PIN: "0"
+        COREPACK_ENABLE_STRICT: "0"
+
+    - name: Use Yarn classic
+      run: yarn set version classic
+      shell: bash
+      env:
+        COREPACK_ENABLE_AUTO_PIN: "0"
+        COREPACK_ENABLE_STRICT: "0"
+
+    - name: Print installed node, npm, yarn and pnpm versions
+      run: |
+        node --version
+        npm --version
+        yarn --version
+        pnpm --version
+      shell: bash
+      env:
+        COREPACK_ENABLE_AUTO_PIN: "0"
+        COREPACK_ENABLE_STRICT: "0"
+
     - name: Install dependencies
       run: ${{ inputs.install-command }}
       shell: bash
-
-    - name: Install pnpm
-      run: npm install -g pnpm
-      shell: bash
+      env:
+        COREPACK_ENABLE_AUTO_PIN: "0"
+        COREPACK_ENABLE_STRICT: "0"

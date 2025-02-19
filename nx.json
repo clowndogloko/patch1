@@ -1,25 +1,5 @@
 {
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
-  "npmScope": "lerna",
-  "tasksRunnerOptions": {
-    "default": {
-      "runner": "@nrwl/nx-cloud",
-      "options": {
-        "accessToken": "MGQ4ZjkyMWYtYTVhNi00ZWQ4LWE0OTctNTkxM2U0ZDUzYWQ1fHJlYWQ=",
-        "cacheableOperations": [
-          "build",
-          "compile",
-          "lint",
-          "e2e",
-          "test",
-          "run-e2e-tests-process",
-          "run-e2e-tests",
-          "integration",
-          "foo"
-        ]
-      }
-    }
-  },
   "namedInputs": {
     "default": ["{projectRoot}/**/*", "sharedGlobals"],
     "sharedGlobals": [
@@ -31,7 +11,9 @@
       },
       {
         "runtime": "npm --version"
-      }
+      },
+      "{workspaceRoot}/.github/workflows/ci.yml",
+      "{workspaceRoot}/.github/workflows/other-node-versions.yml"
     ],
     "production": [
       "default",
@@ -48,17 +30,30 @@
         "{workspaceRoot}/jest.preset.js",
         "{workspaceRoot}/jest.config.ts"
       ],
-      "dependsOn": ["build"]
+      "dependsOn": ["build"],
+      "cache": true,
+      "options": {
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "codeCoverage": true
+        }
+      }
     },
     "lint": {
-      "inputs": ["default", "{workspaceRoot}/.eslintrc.json", "{workspaceRoot}/.eslintignore"]
+      "inputs": ["default", "{workspaceRoot}/.eslintrc.json", "{workspaceRoot}/.eslintignore"],
+      "cache": true
     },
     "build": {
       "inputs": ["production", "^production"],
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build"],
+      "cache": true
     },
     "compile": {
-      "inputs": ["production", "^production"]
+      "inputs": ["production", "^production"],
+      "cache": true
     },
     "e2e": {
       "executor": "nx:run-commands",
@@ -71,11 +66,12 @@
             "command": "npm run e2e-build-package-publish"
           },
           {
-            "command": "E2E_ROOT=$(npx ts-node tools/scripts/set-e2e-root.ts) nx run-e2e-tests {projectName}"
+            "command": "E2E_ROOT=$(npx ts-node --project tools/scripts/tsconfig.e2e.json tools/scripts/set-e2e-root.ts) nx run-e2e-tests {projectName}"
           }
         ],
         "parallel": false
-      }
+      },
+      "cache": true
     },
     "run-e2e-tests": {
       "inputs": [
@@ -84,13 +80,14 @@
         "{workspaceRoot}/jest.preset.js",
         "{workspaceRoot}/jest.config.ts"
       ],
-      "executor": "@nrwl/jest:jest",
+      "executor": "@nx/jest:jest",
       "options": {
         "jestConfig": "{projectRoot}/jest.config.ts",
         "passWithNoTests": true,
         "runInBand": true
       },
-      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"]
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "cache": true
     },
     "run-e2e-tests-process": {
       "inputs": [
@@ -103,16 +100,19 @@
       "options": {
         "commands": [
           {
-            "command": "E2E_ROOT=$(npx ts-node tools/scripts/set-e2e-root.ts) nx run-e2e-tests {projectName}",
+            "command": "E2E_ROOT=$(npx ts-node --project tools/scripts/tsconfig.e2e.json tools/scripts/set-e2e-root.ts) nx run-e2e-tests {projectName}",
             "description": "This additional wrapper target exists so that we can ensure that the e2e tests run in a dedicated process with enough memory"
           }
         ],
         "parallel": false
-      }
+      },
+      "cache": true
     },
     "integration": {
       "inputs": ["default"],
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build"],
+      "cache": true
     }
-  }
+  },
+  "nxCloudAccessToken": "MGQ4ZjkyMWYtYTVhNi00ZWQ4LWE0OTctNTkxM2U0ZDUzYWQ1fHJlYWQ="
 }

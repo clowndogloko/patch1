@@ -1,32 +1,30 @@
-import { Command, CommandConfigOptions, ValidationError } from "@lerna/core";
+import { Arguments, Command, CommandConfigOptions, getPackage, ValidationError } from "@lerna/core";
+import execa from "execa";
+import { getLastCommit } from "./lib/get-last-commit";
+import { hasCommit } from "./lib/has-commit";
+import { spawn } from "@lerna/child-process";
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { getLastCommit } = require("./lib/get-last-commit");
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { hasCommit } = require("./lib/has-commit");
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const childProcess = require("@lerna/child-process");
-
-module.exports = function factory(argv: NodeJS.Process["argv"]) {
+export function factory(argv: Arguments<DiffCommandOptions>) {
   return new DiffCommand(argv);
-};
-
-interface DiffCommandOptions extends CommandConfigOptions {
-  pkgName: string;
-  ignoreChanges: string[];
 }
 
-class DiffCommand extends Command<DiffCommandOptions> {
-  private args: string[];
+interface DiffCommandOptions extends CommandConfigOptions {
+  pkgName?: string;
+  ignoreChanges?: string[];
+}
 
-  initialize() {
+export class DiffCommand extends Command<DiffCommandOptions> {
+  private args: string[] = [];
+
+  override initialize() {
     const packageName = this.options.pkgName;
-
     let targetPackage;
 
     if (packageName) {
-      targetPackage = this.packageGraph.get(packageName);
+      const project = Object.values(this.projectGraph.nodes).find(
+        (p) => p.package && getPackage(p).name === packageName
+      );
+      targetPackage = project && getPackage(project);
 
       if (!targetPackage) {
         throw new ValidationError("ENOPKG", `Cannot diff, the package '${packageName}' does not exist.`);
@@ -55,8 +53,8 @@ class DiffCommand extends Command<DiffCommandOptions> {
     this.args = args;
   }
 
-  execute() {
-    return childProcess.spawn("git", this.args, this.execOpts).catch((err) => {
+  override execute() {
+    return spawn("git", this.args, this.execOpts).catch((err: execa.ExecaError) => {
       if (err.exitCode) {
         // quitting the diff viewer is not an error
         throw err;
@@ -64,5 +62,3 @@ class DiffCommand extends Command<DiffCommandOptions> {
     });
   }
 }
-
-module.exports.DiffCommand = DiffCommand;

@@ -18,7 +18,7 @@ Lerna is a fast, modern build system for managing and publishing multiple JavaSc
 <br />
 
 <p align="center">
-    <a href="">
+    <a href="https://github.com/lerna/lerna/blob/main/LICENSE">
       <img alt="MIT Licensed" src="https://img.shields.io/npm/l/@nrwl/workspace.svg?style=flat" />
     </a>
     <a href="https://www.npmjs.com/package/lerna">
@@ -33,8 +33,8 @@ Lerna is a fast, modern build system for managing and publishing multiple JavaSc
     <a href="https://commitizen.github.io/cz-cli/">
       <img alt="Commitizen friendly" src="https://img.shields.io/badge/commitizen-friendly-brightgreen.svg">
     </a>
-    <a href="https://go.nrwl.io/join-slack">
-      <img alt="CI Status" src="https://img.shields.io/badge/slack-%40nrwl%2Fcommunity-brightgreen?style=flat">
+    <a href="http://go.nx.dev/community">
+      <img alt="Discord" src="https://img.shields.io/discord/1143497901675401286?label=Community%20Discord&labelColor=404eee">
     </a>
 </p>
 
@@ -47,15 +47,15 @@ A few links to help you get started:
 - [lerna.js.org: Documentation, Guides, Interactive Tutorials](https://lerna.js.org)
 - [Getting Started](https://lerna.js.org/docs/getting-started)
 - [Features](https://lerna.js.org/docs/features)
-- [Official Nrwl YouTube Channel](https://www.youtube.com/c/Nrwl_io)
+- [Official Nx and Lerna YouTube Channel](https://www.youtube.com/@nxdevtools)
 - [Blog Posts About Lerna and Nx](https://blog.nrwl.io/nx/home)
 
 <br />
 
 ## Engage with the Core Team and the Community
 
-- [Nrwl Community Slack, #lerna channel](https://go.nrwl.io/join-slack)
-- [Follow Nrwl on Twitter](https://twitter.com/nrwl_io)
+- [Follow Lerna on Twitter](https://twitter.com/lernajs)
+- [Community Discord, #forum channel](https://go.nx.dev/community)
 
 ### Want to help?
 

@@ -1,7 +1,7 @@
 {
   "root": true,
   "ignorePatterns": ["website/**/*", "__fixtures__"],
-  "plugins": ["@nrwl/nx"],
+  "plugins": ["@nx"],
   "settings": {
     "import/resolver": {
       "node": {
@@ -13,7 +13,7 @@
     {
       "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
       "rules": {
-        "@nrwl/nx/enforce-module-boundaries": [
+        "@nx/enforce-module-boundaries": [
           "error",
           {
             "enforceBuildableLibDependency": true,
@@ -23,21 +23,32 @@
                 "sourceTag": "*",
                 "onlyDependOnLibsWithTags": ["*"]
               }
-            ]
+            ],
+            "checkDynamicDependenciesExceptions": [".*"]
+          }
+        ],
+        "no-restricted-imports": [
+          "error",
+          {
+            "name": "npmlog",
+            "message": "Please use the inlined core utility instead."
           }
         ]
       }
     },
     {
       "files": ["*.ts", "*.tsx"],
-      "extends": ["plugin:@nrwl/nx/typescript"],
+      "extends": ["plugin:@nx/typescript"],
       "rules": {
-        "@typescript-eslint/no-empty-function": "off"
+        "@typescript-eslint/no-empty-function": "off",
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-extra-semi": "error",
+        "no-extra-semi": "off"
       }
     },
     {
       "files": ["*.js", "*.jsx"],
-      "extends": ["airbnb-base", "plugin:node/recommended", "plugin:@nrwl/nx/javascript"],
+      "extends": ["airbnb-base", "plugin:node/recommended", "plugin:@nx/javascript"],
       "rules": {
         "@typescript-eslint/no-empty-function": "off",
         "class-methods-use-this": [
@@ -75,7 +86,9 @@
         "strict": "off",
         "default-param-last": "warn",
         "max-len": "off",
-        "arrow-body-style": "off"
+        "arrow-body-style": "off",
+        "@typescript-eslint/no-extra-semi": "error",
+        "no-extra-semi": "off"
       }
     },
     {

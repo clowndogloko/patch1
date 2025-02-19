@@ -1,41 +1,64 @@
-// TODO: refactor based on TS feedback
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
-
 import {
   Command,
+  CommandConfigOptions,
+  FilterOptions,
+  filterProjects,
   generateProfileOutputPath,
-  getFilteredPackages,
+  getPackage,
   npmRunScript,
   npmRunScriptStreaming,
   output,
+  Package,
   Profiler,
-  runTopologically,
+  ProjectGraphProjectNodeWithPackage,
+  runProjectsTopologically,
   timer,
   ValidationError,
+  Arguments,
 } from "@lerna/core";
+import { TargetDependencyConfig } from "@nx/devkit";
 import { existsSync } from "fs-extra";
+
+import { runMany } from "nx/src/command-line/run-many/run-many";
+import { runOne } from "nx/src/command-line/run/run-one";
 import pMap from "p-map";
 import path from "path";
 import { performance } from "perf_hooks";
 
-module.exports = function factory(argv: NodeJS.Process["argv"]) {
+export function factory(argv: Arguments<RunCommandConfigOptions>) {
   return new RunCommand(argv);
-};
+}
 
-class RunCommand extends Command {
+export interface RunCommandConfigOptions extends CommandConfigOptions, FilterOptions {
   script: string | string[];
-  args: string[];
-  npmClient: string;
-  bail: boolean;
-  prefix: boolean;
+  profile?: boolean;
+  profileLocation?: string;
+  bail?: boolean;
+  prefix?: boolean;
+  loadEnvFiles?: boolean;
+  parallel?: boolean;
+  rejectCycles?: boolean;
+  skipNxCache?: boolean;
+  "--"?: string[];
+}
+
+export class RunCommand extends Command<RunCommandConfigOptions> {
+  script: string | string[] = "";
+  args?: string[];
+  npmClient?: string;
+  bail?: boolean;
+  prefix?: boolean;
+  projectsWithScript: ProjectGraphProjectNodeWithPackage[] = [];
+  count?: number;
+  packagePlural?: string;
+  joinedCommand?: string;
 
   override get requiresGit() {
     return false;
   }
 
-  override initialize() {
-    const { script, npmClient = "npm" } = this.options;
+  override async initialize() {
+    const { script, npmClient = "npm", bail, prefix } = this.options;
 
     this.script = script;
     this.args = this.options["--"] || [];
@@ -46,7 +69,7 @@ class RunCommand extends Command {
     }
 
     // Check this.argv (not this.options) so that we only error in this case when --npm-client is set via the CLI (not via lerna.json which is a legitimate use case for other things)
-    if (this.argv.npmClient && this.options.useNx !== false) {
+    if ((this.argv as unknown as RunCommandConfigOptions).npmClient && this.options.useNx !== false) {
       throw new ValidationError(
         "run",
         "The legacy task runner option `--npm-client` is not currently supported. Please open an issue on https://github.com/lerna/lerna if you require this feature."
@@ -62,39 +85,35 @@ class RunCommand extends Command {
     }
 
     // inverted boolean options
-    this.bail = this.options.bail !== false;
-    this.prefix = this.options.prefix !== false;
+    this.bail = bail !== false;
+    this.prefix = prefix !== false;
 
-    let chain = Promise.resolve();
+    const filteredProjects = filterProjects(this.projectGraph, this.execOpts, this.options);
 
-    chain = chain.then(() => getFilteredPackages(this.packageGraph, this.execOpts, this.options));
-    chain = chain.then((filteredPackages) => {
-      this.packagesWithScript =
-        script === "env"
-          ? filteredPackages
-          : filteredPackages.filter((pkg) => {
-              if (Array.isArray(this.script)) {
-                return this.script.some((scriptName) => pkg.scripts && pkg.scripts[scriptName]);
-              }
-              return pkg.scripts && pkg.scripts[script];
-            });
-    });
+    this.projectsWithScript =
+      script === "env"
+        ? filteredProjects
+        : filteredProjects.filter((project) => {
+            if (Array.isArray(this.script)) {
+              return this.script.some((scriptName) => project.data.targets?.[scriptName]);
+            }
+            return project.data.targets?.[this.script ?? ""];
+          });
 
-    return chain.then(() => {
-      this.count = this.packagesWithScript.length;
-      this.packagePlural = this.count === 1 ? "package" : "packages";
-      this.joinedCommand = [this.npmClient, "run", this.script].concat(this.args).join(" ");
+    this.count = this.projectsWithScript.length;
+    this.packagePlural = this.count === 1 ? "package" : "packages";
+    this.joinedCommand = [this.npmClient, "run", this.script].concat(this.args).join(" ");
 
-      if (!this.count) {
-        this.logger.success("run", `No packages found with the lifecycle script '${script}'`);
+    if (!this.count) {
+      this.logger.success("run", `No packages found with the lifecycle script '${script}'`);
 
-        // still exits zero, aka "ok"
-        return false;
-      }
-    });
+      // still exits zero, aka "ok"
+      return false;
+    }
+    return true;
   }
 
-  override execute() {
+  override async execute() {
     if (this.options.useNx === false) {
       this.logger.info(
         "",
@@ -105,56 +124,54 @@ class RunCommand extends Command {
       );
     }
 
-    let chain = Promise.resolve();
     const getElapsed = timer();
 
+    let runScripts: () => Promise<unknown>;
     if (this.options.useNx !== false) {
-      chain = chain.then(() => this.runScriptsUsingNx());
+      runScripts = () => this.runScriptsUsingNx();
     } else if (this.options.parallel) {
-      chain = chain.then(() => this.runScriptInPackagesParallel());
+      runScripts = () => this.runScriptInPackagesParallel();
     } else if (this.toposort) {
-      chain = chain.then(() => this.runScriptInPackagesTopological());
+      runScripts = () => this.runScriptInPackagesTopological();
     } else {
-      chain = chain.then(() => this.runScriptInPackagesLexical());
+      runScripts = () => this.runScriptInPackagesLexical();
     }
 
     if (this.bail) {
       // only the first error is caught
-      chain = chain.catch((err) => {
+      try {
+        await runScripts();
+      } catch (err: any) {
         process.exitCode = err.exitCode;
 
         // rethrow to halt chain and log properly
         throw err;
-      });
+      }
     } else {
       // detect error (if any) from collected results
-      chain = chain.then((results) => {
-        /* istanbul ignore else */
-        if (results.some((result) => result.failed)) {
-          // propagate "highest" error code, it's probably the most useful
-          const codes = results.filter((result) => result.failed).map((result) => result.exitCode);
-          const exitCode = Math.max(...codes, 1);
+      const results = (await runScripts()) as { failed: boolean; exitCode: number }[];
+      if (results.some((result) => result.failed)) {
+        // propagate "highest" error code, it's probably the most useful
+        const codes = results.filter((result) => result.failed).map((result) => result.exitCode);
+        const exitCode = Math.max(...codes, 1);
 
-          this.logger.error("", "Received non-zero exit code %d during execution", exitCode);
-          process.exitCode = exitCode;
-        }
-      });
+        this.logger.error("", "Received non-zero exit code %d during execution", exitCode);
+        process.exitCode = exitCode;
+      }
     }
 
-    return chain.then(() => {
-      this.logger.success(
-        "run",
-        "Ran npm script '%s' in %d %s in %ss:",
-        this.script,
-        this.count,
-        this.packagePlural,
-        (getElapsed() / 1000).toFixed(1)
-      );
-      this.logger.success("", this.packagesWithScript.map((pkg) => `- ${pkg.name}`).join("\n"));
-    });
+    this.logger.success(
+      "run",
+      "Ran npm script '%s' in %d %s in %ss:",
+      this.script,
+      this.count,
+      this.packagePlural,
+      (getElapsed() / 1000).toFixed(1)
+    );
+    this.logger.success("", this.projectsWithScript.map((p) => `- ${getPackage(p).name}`).join("\n"));
   }
 
-  getOpts(pkg) {
+  private getOpts(pkg: Package) {
     // these options are NOT passed directly to execa, they are composed in npm-run-script
     return {
       args: this.args,
@@ -165,15 +182,15 @@ class RunCommand extends Command {
     };
   }
 
-  getRunner() {
+  private getRunner() {
     return this.options.stream
-      ? (pkg) => this.runScriptInPackageStreaming(pkg)
-      : (pkg) => this.runScriptInPackageCapturing(pkg);
+      ? (pkg: Package) => this.runScriptInPackageStreaming(pkg)
+      : (pkg: Package) => this.runScriptInPackageCapturing(pkg);
   }
 
-  runScriptInPackagesTopological() {
-    let profiler;
-    let runner;
+  private runScriptInPackagesTopological() {
+    let profiler: Profiler | undefined;
+    let runner: (pkg: Package) => Promise<unknown>;
 
     if (this.options.profile) {
       profiler = new Profiler({
@@ -183,50 +200,78 @@ class RunCommand extends Command {
       });
 
       const callback = this.getRunner();
-      runner = (pkg) => profiler.run(() => callback(pkg), pkg.name);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      runner = (pkg: Package) => profiler!.run(() => callback(pkg), pkg.name);
     } else {
       runner = this.getRunner();
     }
 
-    let chain = runTopologically(this.packagesWithScript, runner, {
-      concurrency: this.concurrency,
-      rejectCycles: this.options.rejectCycles,
-    });
+    let chain = runProjectsTopologically(
+      this.projectsWithScript,
+      this.projectGraph,
+      (p) => runner(getPackage(p)),
+      {
+        concurrency: this.concurrency,
+        rejectCycles: this.options.rejectCycles,
+      }
+    );
 
     if (profiler) {
-      chain = chain.then((results) => profiler.output().then(() => results));
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      chain = chain.then((results) => profiler!.output().then(() => results));
     }
 
     return chain;
   }
 
-  addQuotesAroundScriptNameIfItHasAColon(scriptName) {
-    // Nx requires quotes around script names of the form script:name
-    if (scriptName.includes(":")) {
-      return `"${scriptName}"`;
-    } else {
-      return scriptName;
-    }
+  private runScriptInPackagesParallel() {
+    return pMap(this.projectsWithScript, (p) => this.runScriptInPackageStreaming(getPackage(p)));
   }
 
-  async runScriptsUsingNx() {
+  private runScriptInPackagesLexical() {
+    return pMap(this.projectsWithScript, (p) => this.getRunner()(getPackage(p)), {
+      concurrency: this.concurrency,
+    });
+  }
+
+  private runScriptInPackageStreaming(pkg: Package) {
+    // script can only be a string when using the legacy task runner
+    return npmRunScriptStreaming(this.script as string, this.getOpts(pkg));
+  }
+
+  private runScriptInPackageCapturing(pkg: Package) {
+    const getElapsed = timer();
+    // script can only be a string when using the legacy task runner
+    return npmRunScript(this.script as string, this.getOpts(pkg)).then((result: { stdout: string }) => {
+      this.logger.info(
+        "run",
+        "Ran npm script '%s' in '%s' in %ss:",
+        this.script,
+        pkg.name,
+        (getElapsed() / 1000).toFixed(1)
+      );
+      output(result.stdout);
+
+      return result;
+    });
+  }
+
+  private async runScriptsUsingNx() {
     if (this.options.ci) {
-      process.env.CI = "true";
+      process.env["CI"] = "true";
     }
     if (this.options.profile) {
       const absolutePath = generateProfileOutputPath(this.options.profileLocation);
       // Nx requires a workspace relative path for this
-      process.env.NX_PROFILE = path.relative(this.project.rootPath, absolutePath);
+      process.env["NX_PROFILE"] = path.relative(this.project.rootPath, absolutePath);
     }
     performance.mark("init-local");
     this.configureNxOutput();
     const { targetDependencies, options, extraOptions } = await this.prepNxOptions();
 
-    if (this.packagesWithScript.length === 1) {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const { runOne } = require("nx/src/command-line/run-one");
+    if (this.projectsWithScript.length === 1 && !Array.isArray(this.script)) {
       const fullQualifiedTarget =
-        this.packagesWithScript.map((p) => p.name)[0] +
+        this.projectsWithScript.map((p) => p.name)[0] +
         ":" +
         this.addQuotesAroundScriptNameIfItHasAColon(this.script);
       return runOne(
@@ -239,9 +284,7 @@ class RunCommand extends Command {
         extraOptions
       );
     } else {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const { runMany } = require("nx/src/command-line/run-many");
-      const projects = this.packagesWithScript.map((p) => p.name).join(",");
+      const projects = this.projectsWithScript.map((p) => p.name).join(",");
       return runMany(
         {
           projects,
@@ -254,7 +297,16 @@ class RunCommand extends Command {
     }
   }
 
-  async prepNxOptions() {
+  private addQuotesAroundScriptNameIfItHasAColon(scriptName: string) {
+    // Nx requires quotes around script names of the form script:name
+    if (scriptName.includes(":")) {
+      return `"${scriptName}"`;
+    } else {
+      return scriptName;
+    }
+  }
+
+  private async prepNxOptions() {
     const nxJsonExists = existsSync(path.join(this.project.rootPath, "nx.json"));
 
     // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -263,17 +315,17 @@ class RunCommand extends Command {
     const targetDependenciesAreDefined =
       Object.keys(nxJson.targetDependencies || nxJson.targetDefaults || {}).length > 0;
 
-    const hasProjectSpecificNxConfiguration = this.packagesWithScript.some((p) => !!p.get("nx"));
+    const hasProjectSpecificNxConfiguration = this.projectsWithScript.some((p) => !!getPackage(p).get("nx"));
     const hasCustomizedNxConfiguration =
       (nxJsonExists && targetDependenciesAreDefined) || hasProjectSpecificNxConfiguration;
     const mimicLernaDefaultBehavior = !hasCustomizedNxConfiguration;
 
-    const targetDependencies =
-      this.toposort && !this.options.parallel && mimicLernaDefaultBehavior
+    const targetDependencies: Record<string, TargetDependencyConfig[]> =
+      this.toposort && !this.options.parallel && mimicLernaDefaultBehavior && !Array.isArray(this.script)
         ? {
             [this.script]: [
               {
-                projects: "dependencies",
+                dependencies: true,
                 target: this.script,
               },
             ],
@@ -301,7 +353,7 @@ class RunCommand extends Command {
       nxIgnoreCycles: !this.options.rejectCycles,
       skipNxCache: this.options.skipNxCache,
       verbose: this.options.verbose,
-      __overrides__: this.args.map((t) => t.toString()),
+      __overrides__: this.args?.map((t) => t.toString()),
     };
 
     if (hasCustomizedNxConfiguration) {
@@ -345,40 +397,12 @@ class RunCommand extends Command {
     return { targetDependencies, options, extraOptions };
   }
 
-  runScriptInPackagesParallel() {
-    return pMap(this.packagesWithScript, (pkg) => this.runScriptInPackageStreaming(pkg));
-  }
-
-  runScriptInPackagesLexical() {
-    return pMap(this.packagesWithScript, this.getRunner(), { concurrency: this.concurrency });
-  }
-
-  runScriptInPackageStreaming(pkg) {
-    return npmRunScriptStreaming(this.script, this.getOpts(pkg));
-  }
-
-  runScriptInPackageCapturing(pkg) {
-    const getElapsed = timer();
-    return npmRunScript(this.script, this.getOpts(pkg)).then((result) => {
-      this.logger.info(
-        "run",
-        "Ran npm script '%s' in '%s' in %ss:",
-        this.script,
-        pkg.name,
-        (getElapsed() / 1000).toFixed(1)
-      );
-      output(result.stdout);
-
-      return result;
-    });
-  }
-
-  configureNxOutput() {
+  private configureNxOutput() {
     try {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const nxOutput = require("nx/src/utils/output");
       nxOutput.output.cliName = "Lerna (powered by Nx)";
-      nxOutput.output.formatCommand = (taskId) => taskId;
+      nxOutput.output.formatCommand = (taskId: string) => taskId;
       return nxOutput;
     } catch (err) {
       // This should be unreachable and we would want to know if it somehow occurred in a user's setup.
@@ -390,5 +414,3 @@ class RunCommand extends Command {
     }
   }
 }
-
-module.exports.RunCommand = RunCommand;

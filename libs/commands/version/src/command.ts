@@ -1,4 +1,4 @@
-import log from "npmlog";
+import { log } from "@lerna/core";
 import semver from "semver";
 import type { CommandModule } from "yargs";
 
@@ -55,6 +55,11 @@ const command: CommandModule = {
         describe: "Version currently prereleased packages to a non-prerelease version.",
         // type must remain ambiguous because it is overloaded (boolean _or_ string _or_ array)
       },
+      "force-conventional-graduate": {
+        describe:
+          "Forces all packages specified by --conventional-graduate to bump their version whether or not they are a prerelease or have changes since the previous version.",
+        type: "boolean",
+      },
       "conventional-prerelease": {
         describe: "Version changed packages as prereleases when using --conventional-commits.",
         // type must remain ambiguous because it is overloaded (boolean _or_ string _or_ array)
@@ -68,6 +73,10 @@ const command: CommandModule = {
         type: "string",
         requiresArg: true,
         defaultDescription: "angular",
+      },
+      "changelog-entry-additional-markdown": {
+        describe: "Additional markdown to add to CHANGELOG.md entries.",
+        type: "string",
       },
       exact: {
         describe: "Specify cross-dependency version numbers exactly rather than with a caret (^).",
@@ -103,6 +112,10 @@ const command: CommandModule = {
         describe: "Include tags from merged branches when detecting changed packages.",
         type: "boolean",
       },
+      json: {
+        describe: "Outputs changed packages in json format",
+        type: "boolean",
+      },
       m: {
         describe: "Use a custom commit message when creating the version commit.",
         alias: "message",
@@ -134,6 +147,10 @@ const command: CommandModule = {
       "git-tag-version": {
         // proxy for --no-git-tag-version
         hidden: true,
+        type: "boolean",
+      },
+      "sync-dist-version": {
+        describe: "Update the version of the package.json of the contents directory.",
         type: "boolean",
       },
       // TODO: (major) make --no-granular-pathspec the default
@@ -195,14 +212,31 @@ const command: CommandModule = {
         requiresArg: true,
         defaultDescription: "v",
       },
+      "tag-version-separator": {
+        describe: "Customize the tag version separator used when creating tags for independent versioning.",
+        type: "string",
+        requiresArg: true,
+        defaultDescription: "@",
+      },
       "git-tag-command": {
         describe:
           "Allows users to specify a custom command to be used when applying git tags. For example, this may be useful for providing a wrapper command in CI/CD pipelines that have no direct write access.",
         type: "string",
       },
+      "run-scripts-on-lockfile-update": {
+        describe: "Do not disable all lifecycle scripts while updating the lock file after the version bump.",
+        type: "boolean",
+      },
       "npm-client-args": {
         describe: "Additional arguments to pass to the npm client when performing 'npm install'.",
         type: "array",
+      },
+      "premajor-version-bump": {
+        describe: "Controls how pre-major version packages are bumped by lerna.",
+        type: "string",
+        choices: ["default", "force-patch"],
+        requiresArg: true,
+        defaultDescription: "default",
       },
       y: {
         describe: "Skip all confirmation prompts.",
@@ -235,75 +269,64 @@ const command: CommandModule = {
       yargs.group(Object.keys(opts), "Command Options:");
     }
 
+    // Provide helpful information regarding old options and encourage use of `lerna repair`
     return yargs
       .option("ignore", {
-        // TODO: remove in next major release
         // NOT the same as filter-options --ignore
         hidden: true,
         conflicts: "ignore-changes",
         type: "array",
       })
       .option("cd-version", {
-        // TODO: remove in next major release
         hidden: true,
         conflicts: "bump",
         type: "string",
         requiresArg: true,
       })
       .option("repo-version", {
-        // TODO: remove in next major release
         hidden: true,
         conflicts: "bump",
         type: "string",
         requiresArg: true,
       })
       .option("skip-git", {
-        // TODO: remove in next major release
         hidden: true,
         type: "boolean",
       })
       .option("github-release", {
-        // TODO: remove in next major release
         hidden: true,
         type: "boolean",
       })
       .check((argv: any) => {
-        /* eslint-disable no-param-reassign */
         if (argv.ignore) {
-          argv.ignoreChanges = argv.ignore;
-          delete argv.ignore;
-          log.warn("deprecated", "--ignore has been renamed --ignore-changes");
+          throw new Error(
+            "--ignore was renamed to --ignore-changes. We recommend running `lerna repair` in order to ensure your lerna.json is up to date, otherwise check your CLI usage and/or any configs you extend from."
+          );
         }
 
-        if (argv.cdVersion && !argv.bump) {
-          argv.bump = argv.cdVersion;
-          delete argv.cdVersion;
-          delete argv["cd-version"];
-          log.warn("deprecated", "--cd-version has been replaced by positional [bump]");
+        if (argv.cdVersion) {
+          throw new Error(
+            "--cd-version was replaced by positional [bump]. We recommend running `lerna repair` in order to ensure your lerna.json is up to date, otherwise check your CLI usage and/or any configs you extend from."
+          );
         }
 
-        if (argv.repoVersion && !argv.bump) {
-          argv.bump = argv.repoVersion;
-          delete argv.repoVersion;
-          delete argv["repo-version"];
-          log.warn("deprecated", "--repo-version has been replaced by positional [bump]");
+        if (argv.repoVersion) {
+          throw new Error(
+            "--repo-version was replaced by positional [bump]. We recommend running `lerna repair` in order to ensure your lerna.json is up to date, otherwise check your CLI usage and/or any configs you extend from."
+          );
         }
 
         if (argv.skipGit) {
-          argv.gitTagVersion = false;
-          argv["git-tag-version"] = false;
-          argv.push = false;
-          delete argv.skipGit;
-          delete argv["skip-git"];
-          log.warn("deprecated", "--skip-git has been replaced by --no-git-tag-version --no-push");
+          throw new Error(
+            "--skip-git was replaced by --no-git-tag-version --no-push. We recommend running `lerna repair` in order to ensure your lerna.json is up to date, otherwise check your CLI usage and/or any configs you extend from."
+          );
         }
 
         if (argv.githubRelease) {
-          argv.createRelease = "github";
-          delete argv.githubRelease;
-          log.warn("deprecated", "--github-release has been replaced by --create-release=github");
+          throw new Error(
+            "--github-release was replaced by --create-release=github. We recommend running `lerna repair` in order to ensure your lerna.json is up to date, otherwise check your CLI usage and/or any configs you extend from."
+          );
         }
-        /* eslint-enable no-param-reassign */
 
         if (argv["--"]) {
           log.warn("EDOUBLEDASH", "Arguments after -- are no longer passed to subprocess executions.");
@@ -320,4 +343,4 @@ const command: CommandModule = {
   addBumpPositional,
 };
 
-module.exports = command;
+export = command;

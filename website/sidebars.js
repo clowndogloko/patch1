@@ -32,7 +32,6 @@ const sidebars = {
         "features/distribute-tasks",
         "features/version-and-publish",
         "features/editor-integrations",
-        "features/legacy-package-management",
         "features/workspace-watching",
       ],
       link: {
@@ -49,8 +48,7 @@ const sidebars = {
         "concepts/task-pipeline-configuration",
         "concepts/how-caching-works",
         "concepts/dte-guide",
-        "concepts/alternate-bootstrapping-methods",
-        "concepts/hoisting",
+        "concepts/configuring-published-files",
       ],
       link: {
         type: "generated-index",
@@ -68,8 +66,10 @@ const sidebars = {
     {
       type: "category",
       label: "API Reference",
-      items: ["api-reference/commands", "api-reference/configuration"],
+      items: ["api-reference/commands", "api-reference/configuration", "api-reference/utilities"],
     },
+    "lerna-and-nx-version-matrix",
+    "legacy-package-management",
     "faq",
     "lerna6-obsolete-options",
     "troubleshooting",

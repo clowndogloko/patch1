@@ -1,11 +1,10 @@
-import { cliRunner, cloneFixtureFactory, showCommit } from "@lerna/test-helpers";
+import { changelogSerializer, cliRunner, cloneFixtureFactory, showCommit } from "@lerna/test-helpers";
 import path from "path";
 
 const cloneFixture = cloneFixtureFactory(path.resolve(__dirname, "../../libs/commands/publish"));
 
 // stabilize changelog commit SHA and datestamp
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-expect.addSnapshotSerializer(require("@lerna/test-helpers/src/lib/serializers/serialize-changelog"));
+expect.addSnapshotSerializer(changelogSerializer);
 
 const env = {
   // never actually upload when calling `npm publish`
@@ -27,12 +26,14 @@ Changes:
  - package-3: 3.0.0 => 4.0.0
  - package-4: 4.0.0 => 5.0.0
  - package-5: 5.0.0 => 6.0.0 (private)
+ - package-6: 0.1.0 => 1.0.0
 
 Successfully published:
  - package-1@2.0.0
  - package-2@3.0.0
  - package-3@4.0.0
  - package-4@5.0.0
+ - package-6@1.0.0
 `);
 
   /* eslint-disable max-len */
@@ -45,8 +46,9 @@ Publish
  - package-3@4.0.0
  - package-4@5.0.0
  - package-5@6.0.0
+ - package-6@1.0.0
 
-HEAD -> main, tag: package-5@6.0.0, tag: package-4@5.0.0, tag: package-3@4.0.0, tag: package-2@3.0.0, tag: package-1@2.0.0, origin/main
+HEAD -> main, tag: package-6@1.0.0, tag: package-5@6.0.0, tag: package-4@5.0.0, tag: package-3@4.0.0, tag: package-2@3.0.0, tag: package-1@2.0.0, origin/main
 
 diff --git a/packages/package-1/package.json b/packages/package-1/package.json
 index SHA..SHA 100644
@@ -92,5 +94,12 @@ index SHA..SHA 100644
 @@ -7 +7 @@
 -  "version": "5.0.0",
 +  "version": "6.0.0",
+diff --git a/packages/package-6/package.json b/packages/package-6/package.json
+index SHA..SHA 100644
+--- a/packages/package-6/package.json
++++ b/packages/package-6/package.json
+@@ -3 +3 @@
+-  "version": "0.1.0",
++  "version": "1.0.0",
 `);
 });

@@ -1,8 +1,8 @@
 {
   "name": "e2e-run-task-runner",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
-  "implicitDependencies": ["lerna", "legacy-structure-commands-run"],
   "tags": [],
+  "implicitDependencies": ["lerna"],
   "targets": {
     "prepare-for-e2e": {
       "executor": "nx:run-commands",
@@ -19,11 +19,8 @@
       }
     },
     "lint": {
-      "executor": "@nrwl/linter:eslint",
-      "outputs": ["{options.outputFile}"],
-      "options": {
-        "lintFilePatterns": ["e2e/run/task-runner/**/*.ts"]
-      }
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"]
     }
   }
 }

@@ -16,8 +16,11 @@ rm -rf ./dist
 # Build any packages which require a build step
 npx nx run-many -t build
 
+# Rerun install step to ensure lerna dist is linked appropriately
+npm install
+
 # Resolve the packages using lerna itself
-IFS=$'\n' read -d '' -a packageLocations < <((./node_modules/node-jq/bin/jq -c -r '.[].location') <<<"$(npx lerna list --json)")
+IFS=$'\n' read -d '' -a packageLocations < <((node -e 'const fs = require("fs"); const pkgs = JSON.parse(fs.readFileSync(0, "utf-8")); for (const p of pkgs) { console.log(p.location); }') <<<"$(npx lerna list --json)")
 
 for packageLocation in "${packageLocations[@]}"; do
   newLocation=$(echo "./dist/${packageLocation#${workspaceRoot}/}/")
@@ -26,4 +29,3 @@ for packageLocation in "${packageLocations[@]}"; do
 done
 
 echo "Successfully copied all ${#packageLocations[@]} packages to ./dist"
-

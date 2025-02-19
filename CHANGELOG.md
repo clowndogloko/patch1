@@ -3,6 +3,498 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [8.2.0](https://github.com/lerna/lerna/compare/v8.1.9...v8.2.0) (2025-02-19)
+
+### Bug Fixes
+
+- drop strip-ansi in favor of native stripVTControlCharacters ([#4095](https://github.com/lerna/lerna/issues/4095)) ([9e4ac9c](https://github.com/lerna/lerna/commit/9e4ac9cf720a72d2787a7572b88d12e52139a39b))
+
+### Features
+
+- allow custom working dir for detectProjects ([#4148](https://github.com/lerna/lerna/issues/4148)) ([08d1d0d](https://github.com/lerna/lerna/commit/08d1d0d50d5f4b2cabfacdd2a4396c77ea06d419))
+
+## [8.1.9](https://github.com/lerna/lerna/compare/v8.1.8...v8.1.9) (2024-10-31)
+
+### Bug Fixes
+
+- add extends property in schema ([#4075](https://github.com/lerna/lerna/issues/4075)) ([28c8ef2](https://github.com/lerna/lerna/commit/28c8ef232d29085ce9a9ba2bff96fae9017b3963))
+- **core:** avoid reading empty .config.json, upgrade cosmiconfig@v9.0.0 ([#4062](https://github.com/lerna/lerna/issues/4062)) ([960bdd9](https://github.com/lerna/lerna/commit/960bdd97cb8c0c8224283cc962f54e606dd24827))
+- update nx support to latest v20 ([#4103](https://github.com/lerna/lerna/issues/4103)) ([cb37f19](https://github.com/lerna/lerna/commit/cb37f19f1bfed170f3366f7e54154eefd82ea269))
+- **version:** enable changing commit message when using amend ([#3954](https://github.com/lerna/lerna/issues/3954)) ([529e83f](https://github.com/lerna/lerna/commit/529e83f469708cb77edac06260839d36d876a82e))
+
+### Features
+
+- **publish:** support full file path for --summary-file ([#4039](https://github.com/lerna/lerna/issues/4039)) ([cfd573a](https://github.com/lerna/lerna/commit/cfd573aca34511ebad4784413c5d54d12d4abb07))
+
+## [8.1.8](https://github.com/lerna/lerna/compare/v8.1.7...v8.1.8) (2024-08-05)
+
+### Bug Fixes
+
+- **publish:** upgrade @npmcli/arborist to 7.5.4 ([#4058](https://github.com/lerna/lerna/issues/4058)) ([89de0eb](https://github.com/lerna/lerna/commit/89de0eb19f9e90863571deaad2e38bb4833f4e1d))
+- **version:** truncate release body based on maximum size allowed by VCS client ([#4041](https://github.com/lerna/lerna/issues/4041)) ([3c2a3c9](https://github.com/lerna/lerna/commit/3c2a3c9c2682935753c759155384a6044d2b56dc))
+
+### Features
+
+- **publish:** enable throttling when publishing modules ([#4013](https://github.com/lerna/lerna/issues/4013)) ([fccca12](https://github.com/lerna/lerna/commit/fccca12f5ccbe8c888f9e5b1f0626ab1cf6404a1))
+
+## [8.1.7](https://github.com/lerna/lerna/compare/v8.1.6...v8.1.7) (2024-07-21)
+
+### Bug Fixes
+
+- set explicit strip-ansi dependency ([#4045](https://github.com/lerna/lerna/issues/4045)) ([6e5cfbc](https://github.com/lerna/lerna/commit/6e5cfbc7dc80ade930f950c6a56e130b25a512eb))
+
+## [8.1.6](https://github.com/lerna/lerna/compare/v8.1.5...v8.1.6) (2024-07-05)
+
+### Bug Fixes
+
+- set explicit string-width dependency ([#4038](https://github.com/lerna/lerna/issues/4038)) ([5f3603a](https://github.com/lerna/lerna/commit/5f3603a6f44a858ee65b1535ab91d3497812ddb8))
+
+## [8.1.5](https://github.com/lerna/lerna/compare/v8.1.4...v8.1.5) (2024-06-24)
+
+### Bug Fixes
+
+- update npm utility dependencies and related packages ([#4033](https://github.com/lerna/lerna/issues/4033)) ([bd1c2d8](https://github.com/lerna/lerna/commit/bd1c2d8a267af47b409e2933fde2186dd73f4772))
+
+## [8.1.4](https://github.com/lerna/lerna/compare/v8.1.3...v8.1.4) (2024-06-09)
+
+### Bug Fixes
+
+- specify 'dependencies: true' when prepping task runner options ([#4017](https://github.com/lerna/lerna/issues/4017)) ([244462d](https://github.com/lerna/lerna/commit/244462d59008f627ca7836c490a97951a9e5dd26))
+
+## [8.1.3](https://github.com/lerna/lerna/compare/v8.1.2...v8.1.3) (2024-05-13)
+
+### Bug Fixes
+
+- **deps:** bump tar from 6.1.11 to 6.2.1 ([#3990](https://github.com/lerna/lerna/issues/3990)) ([3fe0cf0](https://github.com/lerna/lerna/commit/3fe0cf0b7f875f900f275320f3919853a953b3bb))
+- **list:** flush output before exiting ([#3971](https://github.com/lerna/lerna/issues/3971)) ([6426da8](https://github.com/lerna/lerna/commit/6426da86124e74800d5bd1414b0a9cdb0beaba4d))
+- update to nx 19 ([#4003](https://github.com/lerna/lerna/issues/4003)) ([03f476b](https://github.com/lerna/lerna/commit/03f476bb8f49de2ca602a903b27d16d0a3fc8ffc))
+- **version:** create release when using custom tag-version-separator ([#3979](https://github.com/lerna/lerna/issues/3979)) ([cbe01ba](https://github.com/lerna/lerna/commit/cbe01baf7b591f89d830b5526a6d7043d98a2047))
+
+## [8.1.2](https://github.com/lerna/lerna/compare/v8.1.1...v8.1.2) (2024-02-05)
+
+### Bug Fixes
+
+- improve git binary error ([#3945](https://github.com/lerna/lerna/issues/3945)) ([7637972](https://github.com/lerna/lerna/commit/763797295818876bb97d54ddced309d80315361f))
+
+## [8.1.1](https://github.com/lerna/lerna/compare/v8.1.0...v8.1.1) (2024-02-05)
+
+### Bug Fixes
+
+- **list:** explicitly exit upon completion ([bafe090](https://github.com/lerna/lerna/commit/bafe090e837675c0febb938bab3e8c71b27dbe70))
+
+# [8.1.0](https://github.com/lerna/lerna/compare/v8.0.2...v8.1.0) (2024-02-05)
+
+### Features
+
+- support nx v18 ([#3950](https://github.com/lerna/lerna/issues/3950)) ([ea3fb65](https://github.com/lerna/lerna/commit/ea3fb65b5f8f9af11a4acea3c63222283ea869d5))
+- **version:** custom tag-version-separator for independent projects ([#3951](https://github.com/lerna/lerna/issues/3951)) ([43de79c](https://github.com/lerna/lerna/commit/43de79cb5818baba8c7239b01f020817d0d1be6f))
+
+## [8.0.2](https://github.com/lerna/lerna/compare/v8.0.1...v8.0.2) (2024-01-05)
+
+### Bug Fixes
+
+- **add-caching:** explicitly set targetDefaults for all scripts ([#3929](https://github.com/lerna/lerna/issues/3929)) ([dae18c9](https://github.com/lerna/lerna/commit/dae18c927a47326b29d35f8897e02632adb93790))
+
+## [8.0.1](https://github.com/lerna/lerna/compare/v8.0.0...v8.0.1) (2023-12-15)
+
+### Bug Fixes
+
+- update node-gyp usage to v10 to resolve npm warning ([#3919](https://github.com/lerna/lerna/issues/3919)) ([f5fdcba](https://github.com/lerna/lerna/commit/f5fdcba1ef53fa8d779dcaf6c617cba3461f343c))
+- **version:** create correct independent tags when using --sign-git-tag ([#3917](https://github.com/lerna/lerna/issues/3917)) ([8f7a32b](https://github.com/lerna/lerna/commit/8f7a32b519ba64fd3d608c6211d0e74d651f2e13))
+
+## BREAKING CHANGES
+
+> After updating we strongly recommend running `lerna repair` in your project. This will migrate your `lerna.json` to the latest and greatest and remove any outdated options.
+
+As this is a major release there are a few breaking changes to be aware of, which may or may not affect your lerna repos, depending on how you are using the tool.
+
+- **node v16 support is dropped because it is end of life**
+
+When a node version becomes end of life (EOL) it means that it does not receive any updates or maintenance whatsoever, even if critical security vulnerabilities have been uncovered.
+
+We strongly encourage all folks here to keep up with the maintenance LTS version of Node at an absolute minimum:
+
+https://github.com/nodejs/release#release-schedule
+
+- **lerna's task runner for `lerna run` now depends on nx v17 instead of v16**
+
+`lerna run` gets to benefit from all of the further performance improvements in the nx v17 task runner behind scenes.
+
+- **`@lerna/child-process` is no longer a separately published package**
+
+Lerna is a monorepo management tool with versioning and publishing capabilities, it is not a child process manager. There are lots of good options out there in the ecosystem to help you with managing child processes in nodejs, and it does not really make sense to treat some of lerna's implementation details around child processes as if they were a public API. The package will be officially deprecated on npm in the future. You can of course take the code and fork it and adapt it for your own purposes if you wish!
+
+- **Older packages under `@lerna/` on npm have been officially marked as deprecated**
+
+Under prior stewardship the lerna repo used to publish a very large (>65) number of packages. The vast majority of these should not form part of the public API of lerna and so they have no longer been published as packages since v6. We have now officially marked them as deprecated packages on the npm registry so that users get clear feedback that they are using packages which are no longer maintained (which they can of course fork and do whatever they want with). NOTE: We have not yet marked `@lerna/child-process` as deprecated so as not to create noise for lerna v7 users until they have had chance to migrate to v8.
+
+### Features
+
+- **version:** add --premajor-version-bump option to force patch bumps for non-breaking changes in premajor packages ([#3876](https://github.com/lerna/lerna/issues/3876)) ([3b05947](https://github.com/lerna/lerna/commit/3b059476fd62fcb09ac391878b73640cceb6b5ef))
+- **version:** use corepack for install when enabled ([#3877](https://github.com/lerna/lerna/issues/3877)) ([a3cb7ca](https://github.com/lerna/lerna/commit/a3cb7cad74266c74da5d005324bced500111ed1c))
+
+# [8.0.0-alpha.0](https://github.com/lerna/lerna/compare/v7.4.2...v8.0.0-alpha.0) (2023-11-22)
+
+### Features
+
+- **version:** add --premajor-version-bump option to force patch bumps for non-breaking changes in premajor packages ([#3876](https://github.com/lerna/lerna/issues/3876)) ([3b05947](https://github.com/lerna/lerna/commit/3b059476fd62fcb09ac391878b73640cceb6b5ef))
+- **version:** use corepack for install when enabled ([#3877](https://github.com/lerna/lerna/issues/3877)) ([a3cb7ca](https://github.com/lerna/lerna/commit/a3cb7cad74266c74da5d005324bced500111ed1c))
+
+## [7.4.2](https://github.com/lerna/lerna/compare/v7.4.1...v7.4.2) (2023-10-27)
+
+### Bug Fixes
+
+- **version:** support changelog-presets using async factory funcs ([#3873](https://github.com/lerna/lerna/issues/3873)) ([bb5e7d7](https://github.com/lerna/lerna/commit/bb5e7d7a35de6c801943c8349832558f1e6adb50))
+
+## [7.4.1](https://github.com/lerna/lerna/compare/v7.4.0...v7.4.1) (2023-10-18)
+
+7.4.0 contained a malformed dist directory, please bump to 7.4.1 for the correct artifacts
+
+# [7.4.0](https://github.com/lerna/lerna/compare/v7.3.1...v7.4.0) (2023-10-17)
+
+### Bug Fixes
+
+- **version:** update lock files after the version hook ([#3849](https://github.com/lerna/lerna/issues/3849)) ([7e30a31](https://github.com/lerna/lerna/commit/7e30a31f6a133fc4e57f35395a6691b3a8162908))
+
+### Features
+
+- **version:** add json option ([#3858](https://github.com/lerna/lerna/issues/3858)) ([86f22f4](https://github.com/lerna/lerna/commit/86f22f40ca05de38e8717c573356708d13377c33))
+- **version:** add option to force version update ([#3852](https://github.com/lerna/lerna/issues/3852)) ([914dd96](https://github.com/lerna/lerna/commit/914dd964d7a4a127be3d4f2703322ab1b31594f6))
+
+## [7.3.1](https://github.com/lerna/lerna/compare/v7.3.0...v7.3.1) (2023-10-10)
+
+### Bug Fixes
+
+- **core:** update package engines.node to correctly include only >=16 ([#3861](https://github.com/lerna/lerna/issues/3861)) ([0674555](https://github.com/lerna/lerna/commit/067455559a1ffa25350800bff6c9226d0e24e6b9))
+
+# [7.3.0](https://github.com/lerna/lerna/compare/v7.2.0...v7.3.0) (2023-09-13)
+
+### Bug Fixes
+
+- **core:** skip unnecessary cycles when running tasks ([#3834](https://github.com/lerna/lerna/issues/3834)) ([d477529](https://github.com/lerna/lerna/commit/d4775294c0eb34b5dbbaf5b32b6867d7b5288f02))
+- **init:** generate pnpm workspace yaml ([#3822](https://github.com/lerna/lerna/issues/3822)) ([489aa92](https://github.com/lerna/lerna/commit/489aa928254d41b6e56803e710027ee271338705))
+- update make-dir to 4.0.0 and npm audit fix ([#3828](https://github.com/lerna/lerna/issues/3828)) ([373b8bc](https://github.com/lerna/lerna/commit/373b8bc8202f15b4cafb216aee97f43885eebddf))
+- **version:** Fix crash when using `gitSignTag` with `independent` versioning mode ([#3832](https://github.com/lerna/lerna/issues/3832)) ([4940f2d](https://github.com/lerna/lerna/commit/4940f2df85e9242669d67a8d08448efe19507cae))
+
+### Features
+
+- **version:** add --sync-dist-version option ([#3787](https://github.com/lerna/lerna/issues/3787)) ([ba8b946](https://github.com/lerna/lerna/commit/ba8b9469809326de1b3929cf11bbb5919c723a78))
+- **version:** option to not ignore scripts on lock update ([#3823](https://github.com/lerna/lerna/issues/3823)) ([4843c3c](https://github.com/lerna/lerna/commit/4843c3c1a95aa2f6c48204c1da3c06a4dcd746a4))
+
+# [7.2.0](https://github.com/lerna/lerna/compare/v7.1.5...v7.2.0) (2023-08-29)
+
+### Bug Fixes
+
+- **core:** gracefully ignore cycles outside scope to run ([#3819](https://github.com/lerna/lerna/issues/3819)) ([480943b](https://github.com/lerna/lerna/commit/480943b4e2055de8bf66db0bff9eba3e3be84d2d))
+- **version:** remove explicit node_modules require ([#3804](https://github.com/lerna/lerna/issues/3804)) ([1a113f7](https://github.com/lerna/lerna/commit/1a113f7c6fc2111920dcd768bb1c31d80e2e700e))
+
+### Features
+
+- **init:** detect existing package manager and auto-install packages ([#3805](https://github.com/lerna/lerna/issues/3805)) ([2204c34](https://github.com/lerna/lerna/commit/2204c34b8b70e9971f144292cc05f1e23873d050))
+- **init:** infer invoked pkg mgr ([#3810](https://github.com/lerna/lerna/issues/3810)) ([a29a48c](https://github.com/lerna/lerna/commit/a29a48cefc9cdbe5a42a645c7293118c78eef662))
+
+## [7.1.5](https://github.com/lerna/lerna/compare/v7.1.4...v7.1.5) (2023-08-09)
+
+### Bug Fixes
+
+- **create:** declare dependencies of @lerna/create ([#3799](https://github.com/lerna/lerna/issues/3799)) ([b5dcbf4](https://github.com/lerna/lerna/commit/b5dcbf4ed97286720892ca73748964c7e8df6588))
+- **deps:** bump semver from 7.3.8 to 7.5.2 ([#3750](https://github.com/lerna/lerna/issues/3750)) ([26031ca](https://github.com/lerna/lerna/commit/26031ca07d8f042d63d7cdacf879720b99010619))
+- **version:** fix file formatting on git add ([#3796](https://github.com/lerna/lerna/issues/3796)) ([3123c76](https://github.com/lerna/lerna/commit/3123c7668d57b6eb820ba41b507fec10c39e928b))
+
+## [7.1.4](https://github.com/lerna/lerna/compare/v7.1.3...v7.1.4) (2023-07-15)
+
+### Bug Fixes
+
+- add missing lodash dependency ([#3778](https://github.com/lerna/lerna/issues/3778)) ([ef935c7](https://github.com/lerna/lerna/commit/ef935c7bfa9fdca00424e05a25a7e4d5454764d8))
+- bump nx to >=16.5.1 ([#3767](https://github.com/lerna/lerna/issues/3767)) ([0bbd74d](https://github.com/lerna/lerna/commit/0bbd74db8fb29dd914d2387f4c138ac81aad1d9e))
+- **core:** export cli.js for global installs ([#3780](https://github.com/lerna/lerna/issues/3780)) ([e2e1629](https://github.com/lerna/lerna/commit/e2e1629fae00d191e01c1a9e1b49eadbdc67f1aa))
+
+## [7.1.3](https://github.com/lerna/lerna/compare/v7.1.2...v7.1.3) (2023-07-12)
+
+### Bug Fixes
+
+- changelog entries for 7.1.2 ([f61b087](https://github.com/lerna/lerna/commit/f61b0872b96a95fe2830b300f082b5dff3c5d326))
+
+## [7.1.2](https://github.com/lerna/lerna/compare/v6.4.1...v7.1.2) (2023-07-12)
+
+### Bug Fixes
+
+- **version:** use async functions to support prettier 3+ ([#3766](https://github.com/lerna/lerna/issues/3766)) ([8026a7b](https://github.com/lerna/lerna/commit/8026a7b34c1cdf45135f5a556b8dd162c0cd2207))
+
+## [7.1.1](https://github.com/lerna/lerna/compare/7.1.0...7.1.1) (2023-06-28)
+
+### Bug Fixes
+
+- fix strict-ssl mapping for node-fetch-registry during unpublished projects lookup ([#3747](https://github.com/lerna/lerna/issues/3747)) ([5fcf94e](https://github.com/lerna/lerna/commit/5fcf94e5718507dfea8821f806041ca41d8905a8))
+- **publish:** catch publish conflict 403 error from npm ([#3753](https://github.com/lerna/lerna/issues/3753)) ([6123e86](https://github.com/lerna/lerna/commit/6123e86cff9cad425d23f66332e0442ca9ceb8b1))
+- **publish:** ensure that error code is valid ([#3748](https://github.com/lerna/lerna/issues/3748)) ([c59b45b](https://github.com/lerna/lerna/commit/c59b45b3dec05762a40bda19bdb9bb4fa08230a8))
+- **schema:** add missing ref to changelogEntryAdditionalMarkdown ([b41afab](https://github.com/lerna/lerna/commit/b41afabf2ade02cd03bafbc043fa5ed445843640))
+
+# [7.1.0](https://github.com/lerna/lerna/compare/7.0.2...7.1.0) (2023-06-25)
+
+### Features
+
+- **core:** export detectProjects utility function ([#3740](https://github.com/lerna/lerna/issues/3740)) ([641fecb](https://github.com/lerna/lerna/commit/641fecbe7c83602fe5bb792d6db86ab57eecfd9b))
+- **repair:** add migration to remove unused "lerna" field from lerna.json ([#3734](https://github.com/lerna/lerna/issues/3734)) ([4fb0427](https://github.com/lerna/lerna/commit/4fb042755c52d87ff33d04fb1cd45e99ba0c0f61))
+- **version:** add --changelog-entry-additional-markdown option ([#3751](https://github.com/lerna/lerna/issues/3751)) ([63671df](https://github.com/lerna/lerna/commit/63671df05a02429d39144df632f958ec8bf4a455))
+
+## [7.0.2](https://github.com/lerna/lerna/compare/7.0.1...7.0.2) (2023-06-15)
+
+### Bug Fixes
+
+- **publish:** revert auto-copying of assets to custom contents/directory ([#3732](https://github.com/lerna/lerna/issues/3732)) ([70d4438](https://github.com/lerna/lerna/commit/70d4438a977c1017c8ec7a3b65d057f7b8169d64))
+
+## [7.0.1](https://github.com/lerna/lerna/compare/7.0.0...7.0.1) (2023-06-13)
+
+### Bug Fixes
+
+- **core:** reset nx daemon after command finishes ([#3726](https://github.com/lerna/lerna/issues/3726)) ([c0de66a](https://github.com/lerna/lerna/commit/c0de66a64dc74c43031db4eb4772ae7d70bc9211))
+
+# [7.0.0](https://github.com/lerna/lerna/compare/7.0.0-alpha.0...7.0.0) (2023-06-08)
+
+## BREAKING CHANGES
+
+> After updating we strongly recommend running `lerna repair` in your project. This will migrate your `lerna.json` to the latest and greatest and remove any outdated options.
+
+As this is a major release there are a few breaking changes to be aware of, which may or may not affect your lerna repos, depending on how you are using the tool.
+
+- **node v14 support is dropped because it is end of life**
+
+When a node version because end of life (EOL) it means that it does not receive any updates or maintenance whatsoever, even if critical security vulnerabilities have been uncovered.
+
+We strongly encourage all folks here to keep up with the maintenance LTS version of Node at an absolute minimum:
+
+https://github.com/nodejs/release#release-schedule
+
+NOTE: Due to an oversight, we initially forgot to formally remove this from the engines field. This was corrected in patch `7.3.1`
+
+- **legacy package management commands have been removed**
+
+We no longer include the `bootstrap`, `add`, and `link` commands by default. We strongly recommend using your package manager (`npm`, `yarn`, `pnpm`) for package management related concerns such as installing and linking dependencies.
+
+There will not be any active work done on these commands and you should look to migrate as soon as possible.
+
+For full context how why we made this change and how you can migrate your projects, please read our detailed guide here: https://lerna.js.org/docs/legacy-package-management
+
+- **Workspaces are used by default and `useWorkspaces` has been removed**
+
+We now use your package manager's workspaces configuration by default in order to resolve packages for lerna to operate on. If you wish to customize the packages that lerna will operate on, you can still use a `packages` property in your `lerna.json` just as you did before, but there is no longer any need for a `useWorkspaces` flag. If the `packages` property is present, lerna will use that, otherwise it will try and read your workspaces configuration.
+
+Running `lerna repair` will automatically remove `useWorkspaces` from your `lerna.json` for you.
+
+NOTE: If you are using `pnpm` as your package manager, it is important to set `"npmClient": "pnpm"` in your `lerna.json` so that lerna knows to look for a `pnpm-workspaces.yaml` file and not just check your root `package.json`.
+
+- **lerna init can no longer be run on an existing lerna repo**
+
+It was a confusing behavior that `lerna init` could be run on an existing lerna repo and would attempt to coerce its setup to something closer to a fresh repo, so we have removed this behavior and lerna will hard error if it detects the directory is already initialized.
+
+You can run `lerna repair` at any time to update your configuration to the latest and greatest.
+
+- **long deprecated options have been removed**
+
+The following options (on the left of the => in each case) have been deprecated for many years (since before we took over stewardship of the project) and have finally been removed. If you are using them in your `lerna.json` all you need to do is run `lerna repair` and it will automatically migrate you to their modern equivalent. If you are passing them in on the command line, you will need to update your usage as follows:
+
+- `--includeFilteredDependencies` => `--includeDependencies`
+- `--includeFilteredDependents` => `--includeDependents`
+- `--githubRelease` => `--createRelease=github`
+- `--skipGit` => `--push=false --gitTagVersion=false`
+- `--repoVersion` => `[positional bump]`
+- `--cdVersion` => `[positional bump]`
+- `--npmTag` => `--distTag`
+- `--ignore` => `--ignoreChanges`
+
+### Features
+
+- add migration for adding $schema, increase some strictness ([73ceac3](https://github.com/lerna/lerna/commit/73ceac3dc2cf0e1246d4433cb101d1e794b2cca3))
+- **publish:** support custom directory per-package ([#3699](https://github.com/lerna/lerna/issues/3699)) ([9da575e](https://github.com/lerna/lerna/commit/9da575e9da221b8be4fbaa2fb1e7676b54d86d4f))
+- **init:** support --dryRun flag and preview file system changes
+
+### Bug Fixes
+
+- bump cosmiconfig to v8 ([#3701](https://github.com/lerna/lerna/issues/3701)) ([898923d](https://github.com/lerna/lerna/commit/898923d198319d76ed5e37e553bfe3b27e43604c))
+- ensure repair command not blocked by config validation ([e237d58](https://github.com/lerna/lerna/commit/e237d585e63a2fb502a8958f15a1efe03d781c57))
+- improve github client missing env var error ([ce4b352](https://github.com/lerna/lerna/commit/ce4b35213200b07e89a6ab09743f84aa60e5ca2c))
+- internal cli.js should not be bundled ([53d73c6](https://github.com/lerna/lerna/commit/53d73c6aa9833e5a5bf60c2c78896456e77fab40))
+- migration building/publishing issues ([27bf800](https://github.com/lerna/lerna/commit/27bf800b6e7670ea1ec5576fdf008e8d09897d4b))
+- **publish:** use correct version in log messages ([#3702](https://github.com/lerna/lerna/issues/3702)) ([4be9188](https://github.com/lerna/lerna/commit/4be9188e68c5d4c320c0946e6e386cbee95a8efe))
+- share project data when nesting commands ([#3709](https://github.com/lerna/lerna/issues/3709)) ([53e71e4](https://github.com/lerna/lerna/commit/53e71e4746604aa3fbaada3dad58b02904769759))
+- support nx 16.3.1+ ([#3707](https://github.com/lerna/lerna/issues/3707)) ([647dbb5](https://github.com/lerna/lerna/commit/647dbb512bf6a873cab6362c434b420b18af0ad4))
+
+# [7.0.0-alpha.8](https://github.com/lerna/lerna/compare/7.0.0-alpha.0...7.0.0-alpha.8) (2023-06-07)
+
+### Bug Fixes
+
+- bump cosmiconfig to v8 ([#3701](https://github.com/lerna/lerna/issues/3701)) ([898923d](https://github.com/lerna/lerna/commit/898923d198319d76ed5e37e553bfe3b27e43604c))
+- daemon communication ([e82618b](https://github.com/lerna/lerna/commit/e82618bf1a8aaea6d3d7f74f9afb8f1c5afe04ad))
+- ensure repair command not blocked by config validation ([e237d58](https://github.com/lerna/lerna/commit/e237d585e63a2fb502a8958f15a1efe03d781c57))
+- improve github client missing env var error ([ce4b352](https://github.com/lerna/lerna/commit/ce4b35213200b07e89a6ab09743f84aa60e5ca2c))
+- internal cli.js should not be bundled ([53d73c6](https://github.com/lerna/lerna/commit/53d73c6aa9833e5a5bf60c2c78896456e77fab40))
+- migration building/publishing issues ([27bf800](https://github.com/lerna/lerna/commit/27bf800b6e7670ea1ec5576fdf008e8d09897d4b))
+- **publish:** use correct version in log messages ([#3702](https://github.com/lerna/lerna/issues/3702)) ([4be9188](https://github.com/lerna/lerna/commit/4be9188e68c5d4c320c0946e6e386cbee95a8efe))
+- share project data when nesting commands ([#3709](https://github.com/lerna/lerna/issues/3709)) ([53e71e4](https://github.com/lerna/lerna/commit/53e71e4746604aa3fbaada3dad58b02904769759))
+- support nx 16.3.1+ ([#3707](https://github.com/lerna/lerna/issues/3707)) ([647dbb5](https://github.com/lerna/lerna/commit/647dbb512bf6a873cab6362c434b420b18af0ad4))
+
+### Features
+
+- add migration for adding $schema, increase some strictness ([73ceac3](https://github.com/lerna/lerna/commit/73ceac3dc2cf0e1246d4433cb101d1e794b2cca3))
+- **publish:** support custom directory per-package ([#3699](https://github.com/lerna/lerna/issues/3699)) ([9da575e](https://github.com/lerna/lerna/commit/9da575e9da221b8be4fbaa2fb1e7676b54d86d4f))
+
+# [7.0.0-alpha.7](https://github.com/lerna/lerna/compare/7.0.0-alpha.0...7.0.0-alpha.7) (2023-06-05)
+
+### Bug Fixes
+
+- bump cosmiconfig to v8 ([#3701](https://github.com/lerna/lerna/issues/3701)) ([898923d](https://github.com/lerna/lerna/commit/898923d198319d76ed5e37e553bfe3b27e43604c))
+- daemon communication ([e82618b](https://github.com/lerna/lerna/commit/e82618bf1a8aaea6d3d7f74f9afb8f1c5afe04ad))
+- ensure repair command not blocked by config validation ([e237d58](https://github.com/lerna/lerna/commit/e237d585e63a2fb502a8958f15a1efe03d781c57))
+- improve github client missing env var error ([ce4b352](https://github.com/lerna/lerna/commit/ce4b35213200b07e89a6ab09743f84aa60e5ca2c))
+- internal cli.js should not be bundled ([53d73c6](https://github.com/lerna/lerna/commit/53d73c6aa9833e5a5bf60c2c78896456e77fab40))
+- migration building/publishing issues ([27bf800](https://github.com/lerna/lerna/commit/27bf800b6e7670ea1ec5576fdf008e8d09897d4b))
+- **publish:** use correct version in log messages ([#3702](https://github.com/lerna/lerna/issues/3702)) ([4be9188](https://github.com/lerna/lerna/commit/4be9188e68c5d4c320c0946e6e386cbee95a8efe))
+- share project data when nesting commands ([#3709](https://github.com/lerna/lerna/issues/3709)) ([53e71e4](https://github.com/lerna/lerna/commit/53e71e4746604aa3fbaada3dad58b02904769759))
+- support nx 16.3.1+ ([#3707](https://github.com/lerna/lerna/issues/3707)) ([647dbb5](https://github.com/lerna/lerna/commit/647dbb512bf6a873cab6362c434b420b18af0ad4))
+
+### Features
+
+- add migration for adding $schema, increase some strictness ([73ceac3](https://github.com/lerna/lerna/commit/73ceac3dc2cf0e1246d4433cb101d1e794b2cca3))
+- **publish:** support custom directory per-package ([#3699](https://github.com/lerna/lerna/issues/3699)) ([9da575e](https://github.com/lerna/lerna/commit/9da575e9da221b8be4fbaa2fb1e7676b54d86d4f))
+
+# [7.0.0-alpha.6](https://github.com/lerna/lerna/compare/7.0.0-alpha.0...7.0.0-alpha.6) (2023-06-02)
+
+### Bug Fixes
+
+- bump cosmiconfig to v8 ([#3701](https://github.com/lerna/lerna/issues/3701)) ([898923d](https://github.com/lerna/lerna/commit/898923d198319d76ed5e37e553bfe3b27e43604c))
+- daemon communication ([e82618b](https://github.com/lerna/lerna/commit/e82618bf1a8aaea6d3d7f74f9afb8f1c5afe04ad))
+- ensure repair command not blocked by config validation ([e237d58](https://github.com/lerna/lerna/commit/e237d585e63a2fb502a8958f15a1efe03d781c57))
+- improve github client missing env var error ([ce4b352](https://github.com/lerna/lerna/commit/ce4b35213200b07e89a6ab09743f84aa60e5ca2c))
+- internal cli.js should not be bundled ([53d73c6](https://github.com/lerna/lerna/commit/53d73c6aa9833e5a5bf60c2c78896456e77fab40))
+- migration building/publishing issues ([27bf800](https://github.com/lerna/lerna/commit/27bf800b6e7670ea1ec5576fdf008e8d09897d4b))
+- **publish:** use correct version in log messages ([#3702](https://github.com/lerna/lerna/issues/3702)) ([4be9188](https://github.com/lerna/lerna/commit/4be9188e68c5d4c320c0946e6e386cbee95a8efe))
+- support nx 16.3.1+ ([#3707](https://github.com/lerna/lerna/issues/3707)) ([647dbb5](https://github.com/lerna/lerna/commit/647dbb512bf6a873cab6362c434b420b18af0ad4))
+
+### Features
+
+- add migration for adding $schema, increase some strictness ([73ceac3](https://github.com/lerna/lerna/commit/73ceac3dc2cf0e1246d4433cb101d1e794b2cca3))
+- **publish:** support custom directory per-package ([#3699](https://github.com/lerna/lerna/issues/3699)) ([9da575e](https://github.com/lerna/lerna/commit/9da575e9da221b8be4fbaa2fb1e7676b54d86d4f))
+
+# [7.0.0-alpha.5](https://github.com/lerna/lerna/compare/7.0.0-alpha.0...7.0.0-alpha.5) (2023-06-01)
+
+### Bug Fixes
+
+- bump cosmiconfig to v8 ([#3701](https://github.com/lerna/lerna/issues/3701)) ([898923d](https://github.com/lerna/lerna/commit/898923d198319d76ed5e37e553bfe3b27e43604c))
+- ensure repair command not blocked by config validation ([e237d58](https://github.com/lerna/lerna/commit/e237d585e63a2fb502a8958f15a1efe03d781c57))
+- internal cli.js should not be bundled ([53d73c6](https://github.com/lerna/lerna/commit/53d73c6aa9833e5a5bf60c2c78896456e77fab40))
+- migration building/publishing issues ([27bf800](https://github.com/lerna/lerna/commit/27bf800b6e7670ea1ec5576fdf008e8d09897d4b))
+- **publish:** use correct version in log messages ([#3702](https://github.com/lerna/lerna/issues/3702)) ([4be9188](https://github.com/lerna/lerna/commit/4be9188e68c5d4c320c0946e6e386cbee95a8efe))
+
+### Features
+
+- add migration for adding $schema, increase some strictness ([73ceac3](https://github.com/lerna/lerna/commit/73ceac3dc2cf0e1246d4433cb101d1e794b2cca3))
+- **publish:** support custom directory per-package ([#3699](https://github.com/lerna/lerna/issues/3699)) ([9da575e](https://github.com/lerna/lerna/commit/9da575e9da221b8be4fbaa2fb1e7676b54d86d4f))
+
+# [7.0.0-alpha.4](https://github.com/lerna/lerna/compare/7.0.0-alpha.0...7.0.0-alpha.4) (2023-06-01)
+
+### Bug Fixes
+
+- bump cosmiconfig to v8 ([#3701](https://github.com/lerna/lerna/issues/3701)) ([898923d](https://github.com/lerna/lerna/commit/898923d198319d76ed5e37e553bfe3b27e43604c))
+- ensure repair command not blocked by config validation ([e237d58](https://github.com/lerna/lerna/commit/e237d585e63a2fb502a8958f15a1efe03d781c57))
+- internal cli.js should not be bundled ([53d73c6](https://github.com/lerna/lerna/commit/53d73c6aa9833e5a5bf60c2c78896456e77fab40))
+- migration building/publishing issues ([27bf800](https://github.com/lerna/lerna/commit/27bf800b6e7670ea1ec5576fdf008e8d09897d4b))
+- **publish:** use correct version in log messages ([#3702](https://github.com/lerna/lerna/issues/3702)) ([4be9188](https://github.com/lerna/lerna/commit/4be9188e68c5d4c320c0946e6e386cbee95a8efe))
+
+### Features
+
+- **publish:** support custom directory per-package ([#3699](https://github.com/lerna/lerna/issues/3699)) ([9da575e](https://github.com/lerna/lerna/commit/9da575e9da221b8be4fbaa2fb1e7676b54d86d4f))
+
+# [7.0.0-alpha.3](https://github.com/lerna/lerna/compare/7.0.0-alpha.0...7.0.0-alpha.3) (2023-05-31)
+
+### Bug Fixes
+
+- bump cosmiconfig to v8 ([#3701](https://github.com/lerna/lerna/issues/3701)) ([898923d](https://github.com/lerna/lerna/commit/898923d198319d76ed5e37e553bfe3b27e43604c))
+- ensure repair command not blocked by config validation ([e237d58](https://github.com/lerna/lerna/commit/e237d585e63a2fb502a8958f15a1efe03d781c57))
+- internal cli.js should not be bundled ([53d73c6](https://github.com/lerna/lerna/commit/53d73c6aa9833e5a5bf60c2c78896456e77fab40))
+- migration building/publishing issues ([27bf800](https://github.com/lerna/lerna/commit/27bf800b6e7670ea1ec5576fdf008e8d09897d4b))
+
+### Features
+
+- **publish:** support custom directory per-package ([#3699](https://github.com/lerna/lerna/issues/3699)) ([9da575e](https://github.com/lerna/lerna/commit/9da575e9da221b8be4fbaa2fb1e7676b54d86d4f))
+
+# [7.0.0-alpha.2](https://github.com/lerna/lerna/compare/7.0.0-alpha.0...7.0.0-alpha.2) (2023-05-31)
+
+### Bug Fixes
+
+- bump cosmiconfig to v8 ([#3701](https://github.com/lerna/lerna/issues/3701)) ([898923d](https://github.com/lerna/lerna/commit/898923d198319d76ed5e37e553bfe3b27e43604c))
+- ensure repair command not blocked by config validation ([e237d58](https://github.com/lerna/lerna/commit/e237d585e63a2fb502a8958f15a1efe03d781c57))
+- internal cli.js should not be bundled ([53d73c6](https://github.com/lerna/lerna/commit/53d73c6aa9833e5a5bf60c2c78896456e77fab40))
+
+### Features
+
+- **publish:** support custom directory per-package ([#3699](https://github.com/lerna/lerna/issues/3699)) ([9da575e](https://github.com/lerna/lerna/commit/9da575e9da221b8be4fbaa2fb1e7676b54d86d4f))
+
+# [7.0.0-alpha.1](https://github.com/lerna/lerna/compare/7.0.0-alpha.0...7.0.0-alpha.1) (2023-05-31)
+
+### Bug Fixes
+
+- bump cosmiconfig to v8 ([#3701](https://github.com/lerna/lerna/issues/3701)) ([898923d](https://github.com/lerna/lerna/commit/898923d198319d76ed5e37e553bfe3b27e43604c))
+- internal cli.js should not be bundled ([53d73c6](https://github.com/lerna/lerna/commit/53d73c6aa9833e5a5bf60c2c78896456e77fab40))
+
+### Features
+
+- **publish:** support custom directory per-package ([#3699](https://github.com/lerna/lerna/issues/3699)) ([9da575e](https://github.com/lerna/lerna/commit/9da575e9da221b8be4fbaa2fb1e7676b54d86d4f))
+
+# [7.0.0-alpha.0](https://github.com/lerna/lerna/compare/6.6.2...7.0.0-alpha.0) (2023-05-10)
+
+### Features
+
+- **core:** convert commands to use nx project graph instead of legacy package graph ([#3667](https://github.com/lerna/lerna/issues/3667)) ([8e813c4](https://github.com/lerna/lerna/commit/8e813c46c543aa8e002a8982ca0b7f6afcee539e))
+- do not include bootstrap, add, link commands by default ([#3658](https://github.com/lerna/lerna/issues/3658)) ([487d475](https://github.com/lerna/lerna/commit/487d4755e8602ab3694992dd7702a2dd08f55861))
+
+### BREAKING CHANGES
+
+- We no longer include the bootstrap, add, and link commands by default. We strongly recommend using your package manager (npm, yarn, pnpm) for package management related concerns such as installing and linking dependencies.
+
+If you want to temporarily continue to use those commands in v7 you can do so by installing the @lerna/legacy-package-management package at the same version as your lerna version.
+
+There will not be any active work done on these commands and you should look to migrate as soon as possible, please check out https://lerna.js.org for further guidance.
+
+## [6.6.2](https://github.com/lerna/lerna/compare/6.6.1...6.6.2) (2023-05-04)
+
+### Bug Fixes
+
+- **deps:** bump pacote to latest to remove install warning ([#3624](https://github.com/lerna/lerna/issues/3624)) ([7c34521](https://github.com/lerna/lerna/commit/7c34521b9987b064638dd218b0b417546257d5f3))
+- remove non-functional schema properties starting with "no" ([#3645](https://github.com/lerna/lerna/issues/3645)) ([43c2a48](https://github.com/lerna/lerna/commit/43c2a48fbba9e02675032aba15e1b4bb1f89a0ef))
+- **run:** only use run-one when not passing multiple scripts ([#3620](https://github.com/lerna/lerna/issues/3620)) ([9db1572](https://github.com/lerna/lerna/commit/9db157242fe08fabd126e03571a5a1ac98f9f966))
+
+### Features
+
+- **publish:** support npm provenance ([9c8bb4e](https://github.com/lerna/lerna/commit/9c8bb4ebde45791cdbade52a846f16c8fbd6f872))
+
+## [6.6.1](https://github.com/lerna/lerna/compare/6.6.0...6.6.1) (2023-03-24)
+
+### Bug Fixes
+
+- build-metadata reference in lerna schema ([e2349ad](https://github.com/lerna/lerna/commit/e2349ad4f529c307ea69d21698a2ab53f5a9d6b4))
+- **deps:** update to rimraf v4, remove path-exists ([#3616](https://github.com/lerna/lerna/issues/3616)) ([2f2ee2a](https://github.com/lerna/lerna/commit/2f2ee2a02091e2c9e35feaabc8f202f77407a408))
+- ensure rimraf bin dir can always be resolved ([#3614](https://github.com/lerna/lerna/issues/3614)) ([0fe5faf](https://github.com/lerna/lerna/commit/0fe5fafb28a47cb80c7d8ea4fb4e152b6ed0d978))
+- handle trailing commas and comments in lerna.json files ([#3603](https://github.com/lerna/lerna/issues/3603)) ([b826398](https://github.com/lerna/lerna/commit/b826398b6da61b6b3a0e972211fb3a8ec68654f3))
+- lerna schema type for contents should be string ([1625757](https://github.com/lerna/lerna/commit/162575758e9422f2c05fc741ead370eaf793cb57))
+- **publish:** use updated version with pnpm workspaces ([#3606](https://github.com/lerna/lerna/issues/3606)) ([cd7ad21](https://github.com/lerna/lerna/commit/cd7ad211212bd18e4876703a26d53df4b77f2d38))
+
+# [6.6.0](https://github.com/lerna/lerna/compare/6.5.1...6.6.0) (2023-03-23)
+
+### Bug Fixes
+
+- correct links to command docs ([#3598](https://github.com/lerna/lerna/issues/3598)) ([b90b684](https://github.com/lerna/lerna/commit/b90b684976e33b18f1a856657dbc9a9546fe2c66))
+- **publish:** ensure zero exit code when EWORKINGTREE warning occurs ([#3327](https://github.com/lerna/lerna/issues/3327)) ([9c00a33](https://github.com/lerna/lerna/commit/9c00a33b18046b6f0a5a20d7043a4f0bb309d9c4))
+- update `troubleshooting.md` typo ([#3581](https://github.com/lerna/lerna/issues/3581)) ([a174cd7](https://github.com/lerna/lerna/commit/a174cd78165c5e9f05bf160891d927177ed7b948))
+- update arborist package to get rid of deprecated warning ([#3559](https://github.com/lerna/lerna/issues/3559)) ([aff38a7](https://github.com/lerna/lerna/commit/aff38a7a0f5e5eea04d1743e78add9b2e052de3a))
+- **version:** handle deps property missing due to outdated lockfile ([#3549](https://github.com/lerna/lerna/issues/3549)) ([fdbbab9](https://github.com/lerna/lerna/commit/fdbbab9c2cb96ac9e97018129bbdb5347c0e6171))
+- **version:** update yarn lock for versions of yarn >= 2.0.0 ([#3555](https://github.com/lerna/lerna/issues/3555)) ([ce2ceca](https://github.com/lerna/lerna/commit/ce2ceca7defd06fc2c8abf0241cbb2c3dcfaf0f3))
+
+### Features
+
+- add @lerna/legacy-package-management package ([#3602](https://github.com/lerna/lerna/issues/3602)) ([4a03dd5](https://github.com/lerna/lerna/commit/4a03dd5f02c118eb683cf2ed525715b4d8e5221b))
+- **version:** add user-defined build metadata to bumped packages ([#2880](https://github.com/lerna/lerna/issues/2880)) ([0b0e2a6](https://github.com/lerna/lerna/commit/0b0e2a62257ad8728835057dc37654626cbd621e))
+
 ## [6.5.1](https://github.com/lerna/lerna/compare/6.5.0...6.5.1) (2023-02-14)
 
 ### Bug Fixes

@@ -1,18 +1,15 @@
 {
   "name": "e2e-exec",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "implicitDependencies": ["lerna", "commands-exec"],
   "tags": [],
+  "implicitDependencies": ["lerna", "commands-exec"],
   "targets": {
     "e2e": {},
     "run-e2e-tests-process": {},
     "run-e2e-tests": {},
     "lint": {
-      "executor": "@nrwl/linter:eslint",
-      "outputs": ["{options.outputFile}"],
-      "options": {
-        "lintFilePatterns": ["e2e/exec/**/*.ts"]
-      }
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"]
     }
   }
 }

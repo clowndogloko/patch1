@@ -1,16 +1,10 @@
-import log from "npmlog";
+import { log } from "@lerna/core";
+import { ExecOptions } from "child_process";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const childProcess = require("@lerna/child-process");
 
-module.exports.gitPush = gitPush;
-
-/**
- * @param {string} remote
- * @param {string} branch
- * @param {import("@lerna/child-process").ExecOpts} opts
- */
-function gitPush(remote, branch, opts) {
+export function gitPush(remote: string, branch: string, opts: ExecOptions) {
   log.silly("gitPush", remote, branch);
 
   return childProcess

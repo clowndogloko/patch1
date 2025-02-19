@@ -1,8 +1,8 @@
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
-const lightCodeTheme = require("prism-react-renderer/themes/github");
-const darkCodeTheme = require("prism-react-renderer/themes/dracula");
+const lightCodeTheme = require("prism-react-renderer").themes.github;
+const darkCodeTheme = require("prism-react-renderer").themes.dracula;
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -113,14 +113,14 @@ const config = {
             position: "left",
             label: "Get Started",
           },
-          { to: "/upgrade", label: "Upgrade", position: "left" },
-          {
-            href: "https://www.youtube.com/watch?v=ASCSTKX21jE",
-            "aria-label": "What's New in Lerna 6.5",
-            position: "left",
-            title: "What's New in Lerna 6.5",
-            label: `🎥 Lerna 6.5`,
-          },
+          // { to: "/upgrade", label: "Upgrade", position: "left" },
+          // {
+          //   href: "https://www.youtube.com/watch?v=ASCSTKX21jE",
+          //   "aria-label": "What's New in Lerna 6.5",
+          //   position: "left",
+          //   title: "What's New in Lerna 6.5",
+          //   label: `🎥 Lerna 6.5`,
+          // },
           // {
           //   href: "https://nx.dev",
           //   className: "header-nxdev-link",
@@ -168,6 +168,10 @@ const config = {
                 label: "Youtube Channel",
                 href: "https://youtube.com/@nxdevtools?utm_source=lerna.js.org",
               },
+              {
+                label: "About Us",
+                href: "https://nx.app/company?utm_source=lerna.js.org",
+              },
             ],
           },
           {
@@ -203,8 +207,8 @@ const config = {
                 href: "https://go.nrwl.io/nx-newsletter?utm_source=lerna.js.org",
               },
               {
-                label: "Slack",
-                href: "https://go.nrwl.io/join-slack?utm_source=lerna.js.org",
+                label: "Community Discord",
+                href: "https://go.nx.dev/community?utm_source=lerna.js.org",
               },
               {
                 label: "Help Us",
@@ -223,14 +227,10 @@ const config = {
                 label: "NxCloud",
                 href: "https://nx.app/?utm_source=lerna.js.org",
               },
-              {
-                label: "Nrwl",
-                href: "https://nrwl.io/?utm_source=lerna.js.org",
-              },
             ],
           },
         ],
-        copyright: `Released under the MIT License. <br /> &copy; ${new Date().getFullYear()} Copyright Nrwl.`,
+        copyright: `Released under the MIT License. <br /> &copy; ${new Date().getFullYear()} Copyright Nx.`,
       },
       prism: {
         theme: lightCodeTheme,

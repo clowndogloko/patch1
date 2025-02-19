@@ -5,10 +5,9 @@ import {
   Tree,
   updateJson,
   updateProjectConfiguration,
-} from "@nrwl/devkit";
-import { addPropertyToJestConfig } from "@nrwl/jest/src/utils/config/update-config";
-import { projectGenerator } from "@nrwl/js/src/generators/library/library";
-import { resolve } from "path";
+} from "@nx/devkit";
+import { addPropertyToJestConfig } from "@nx/jest/src/utils/config/update-config";
+import { libraryGenerator } from "@nx/js/src/generators/library/library";
 import { E2eProjectGeneratorSchema } from "./schema";
 
 interface NormalizedSchema extends E2eProjectGeneratorSchema {
@@ -19,8 +18,10 @@ interface NormalizedSchema extends E2eProjectGeneratorSchema {
 
 function normalizeOptions(_tree: Tree, options: E2eProjectGeneratorSchema): NormalizedSchema {
   const e2eRoot = "e2e";
-  const projectDirectory = options.directory ? `${e2eRoot}/${names(options.directory).fileName}` : e2eRoot;
-  const projectRoot = `${projectDirectory}/${names(options.name).fileName}`;
+  const projectDirectory = options.directory
+    ? `${e2eRoot}/${names(options.directory).fileName}${names(options.name).fileName}`
+    : `${e2eRoot}/${names(options.name).fileName}`;
+  const projectRoot = projectDirectory;
   const projectName = `${e2eRoot}${options.directory ? `-${options.directory}` : ""}-${
     names(options.name).fileName
   }`;
@@ -36,16 +37,12 @@ function normalizeOptions(_tree: Tree, options: E2eProjectGeneratorSchema): Norm
 export default async function (tree: Tree, options: E2eProjectGeneratorSchema) {
   const normalizedOptions = normalizeOptions(tree, options);
 
-  await projectGenerator(
-    tree,
-    {
-      name: normalizedOptions.name,
-      directory: normalizedOptions.projectDirectory,
-      skipTsConfig: true,
-    },
-    "./",
-    resolve("node_modules/@nrwl/js/src/generators/library/files")
-  );
+  await libraryGenerator(tree, {
+    name: normalizedOptions.projectName,
+    directory: normalizedOptions.projectDirectory,
+    skipTsConfig: true,
+    unitTestRunner: "jest",
+  });
 
   tree.delete(`${normalizedOptions.projectRoot}/README.md`);
 
@@ -85,7 +82,7 @@ export default async function (tree: Tree, options: E2eProjectGeneratorSchema) {
               command: "npm run e2e-build-package-publish",
             },
             {
-              command: `E2E_ROOT=$(npx ts-node tools/scripts/set-e2e-root.ts) nx run-e2e-tests ${normalizedOptions.projectName}`,
+              command: `E2E_ROOT=$(npx ts-node --project tools/scripts/tsconfig.e2e.json tools/scripts/set-e2e-root.ts) nx run-e2e-tests ${normalizedOptions.projectName}`,
             },
           ],
           parallel: false,
@@ -96,7 +93,7 @@ export default async function (tree: Tree, options: E2eProjectGeneratorSchema) {
         options: {
           commands: [
             {
-              command: `E2E_ROOT=$(npx ts-node tools/scripts/set-e2e-root.ts) nx run-e2e-tests ${normalizedOptions.projectName}`,
+              command: `E2E_ROOT=$(npx ts-node --project tools/scripts/tsconfig.e2e.json tools/scripts/set-e2e-root.ts) nx run-e2e-tests ${normalizedOptions.projectName}`,
               description:
                 "This additional wrapper target exists so that we can ensure that the e2e tests run in a dedicated process with enough memory",
             },
@@ -105,7 +102,7 @@ export default async function (tree: Tree, options: E2eProjectGeneratorSchema) {
         },
       },
       "run-e2e-tests": {
-        executor: "@nrwl/jest:jest",
+        executor: "@nx/jest:jest",
         options: {
           jestConfig: `${normalizedOptions.projectRoot}/jest.config.ts`,
           passWithNoTests: true,
